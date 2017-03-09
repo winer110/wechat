@@ -103,25 +103,25 @@ export default {
   },
 
   methods: {
+  // 返回上一级
     goBack () {
       this.$router.go(-1)
     },
-
+  // 获得用户状态
     getUseStatus () {
       let me = this
       let validationMessage = {
         id: me.$store.state.currentUser.id,
-        email: me.$store.state.currentUser.email,
-        source_name: me.equipment.source_name,
-        socket: {}
+        email: me.$store.state.currentUser.email
       }
       let handlerListen = msg => {
+        // 不走代理服务
         me.socket
           .on('auth-reback', data => {
             if (data.authed !== true) return false
             me.$http.post('/api/decryptUserInfo', {code: data.code}).then(res => {
-              if (res.body.success) {
-                let code = res.body.code
+              if (res.data.success) {
+                let code = res.data.code
                 let statusParams = {
                   equipment: me.equipment.uuid,
                   source_name: me.equipment.source_name,
@@ -152,7 +152,6 @@ export default {
             })
           })
           .on('yiqikong-check-permission-reback', data => {
-            console.log('yiqikong-check-permission-reback', data)
             if (data.success) {
               me.checkButtonText = data.params.permission === 'switchOff' ? 'on' : 'off'
               me.checkAction = data.params.result === true ? 1 : 0
@@ -170,7 +169,8 @@ export default {
       me.socket.connect()
         .on('connect', handlerListen)
         .on('connect_error', msg => {
-          console.log('connect failed!')
+  // 需要走代理服务
+          console.log('wxyconnect failed!')
           me.socket.disconnect()
           me.socket = io.connect(me.proxyUrl, {
             path: '/socket.io',
@@ -178,25 +178,27 @@ export default {
             forceNew: true,
             timeout: 10000
           })
+          validationMessage.source_name = me.equipment.source_name
+          validationMessage.socket = {}
           me.socket.connect().on('connect', handlerListen)
           .on('connect_error', msg => {
             console.log('connect failed')
           })
         })
     },
-
+  // 用户是否关注设备
     getFollowStatus () {
       var me = this
       me.$http.post('/api/getEquipmentFollowStatus', {
         uid: me.$store.state.currentUser.gapper_id,
         uuid: me.equipment.uuid
       }).then(res => {
-        me.isfollow = res.body.id
+        me.isfollow = res.data.id
       }, res => {
         me.equipment.follow = 0
       })
     },
-
+  // 跳转到预约界面
     reservClick () {
       this.$router.push({name: 'equipment-reserv', params: { id: this.equipment.uuid }})
     }
@@ -211,7 +213,7 @@ export default {
     me.$http.post('/api/getEquipment', {
       id: me.$router.currentRoute.params.id
     }).then(res => {
-      me.equipment = res.body
+      me.equipment = res.data
       toast.close()
       me.socket = io.connect(me.equipment.socket_url, {
         path: '/socket.io',

@@ -1,31 +1,3 @@
-<style lang="stylus">
-.eq-info-reserv-container
-  background-color #EEEEEE
-  a.date-box
-    text-decoration none
-    .mint-cell-title
-      width 105px
-      flex none
-  .datePicker
-    width 160px
-    color #393939
-    &.gray
-      color #A7A7A7
-  .submit-buttons
-    .mint-button--primary
-      background-color #5f71d3
-      border-radius 0px
-      label
-        margin-bottom 0px
-    .action-button
-      width 50%
-      float left
-      &.left
-        border-right 1px solid #172a92
-      &.right
-        border-left 1px solid #b2beff
-</style>
-
 <template>
   <div class="eq-info-reserv-container">
     <mt-header fixed title="申请预约">
@@ -43,7 +15,11 @@
         <mt-cell v-show="loading == true">
           <mt-spinner :type="1" color="#5F71D3" slot="title"></mt-spinner>
         </mt-cell>
-        <mt-cell v-show="loading == false" title="暂无人预约"></mt-cell>
+        <mt-cell v-show="loading == false" title="暂无人预约">
+          <ul v-show="reserves.length" v-for="reserve in reserves">
+          <li>{{ reserve.start_time }}</li>
+          </ul>
+        </mt-cell>
       </template>
     </div>
     <div style="padding-top: 10px;">
@@ -58,10 +34,10 @@
     </div>
     <div class="submit-buttons" style="padding-top:20px">
       <div class="action-button left">
-        <mt-button type="primary" size="large">确认</mt-button>
+        <mt-button type="primary" size="large" @click="postReservInfo">确认</mt-button>
       </div>
       <div class="action-button right">
-        <mt-button type="primary" size="large">取消</mt-button>
+        <mt-button type="primary" size="large" @click="goBack">取消</mt-button>
       </div>
     </div>
     <mt-datetime-picker
@@ -137,20 +113,53 @@ export default {
       date.setHours(0)
       date.setMinutes(0)
       date.setSeconds(0)
-      console.log('wxy:getTime', date.getTime())
+      console.log('getTime', date.getTime())
       this.$http.post('/api/searchReserves', {
         uuid: this.$router.currentRoute.params.id,
         startTime: date.getTime() / 1000,
         endTime: date.getTime() / 1000 + 24 * 3600
       }).then(res => {
+        console.log(res)
         this.loading = false
       }, res => {
         this.loading = false
       })
+    },
+    // 点击确认发送预约信息
+    postReservInfo () {
+      console.log('post')
     }
   },
 
   created () {
+    this.getChooseDayReserves()
   }
 }
 </script>
+<style lang="stylus">
+.eq-info-reserv-container
+  background-color #EEEEEE
+  a.date-box
+    text-decoration none
+    .mint-cell-title
+      width 105px
+      flex none
+  .datePicker
+    width 160px
+    color #393939
+    &.gray
+      color #A7A7A7
+  .submit-buttons
+    .mint-button--primary
+      background-color #5f71d3
+      border-radius 0px
+      label
+        margin-bottom 0px
+    .action-button
+      width 50%
+      float left
+      &.left
+        border-right 1px solid #172a92
+      &.right
+        border-left 1px solid #b2beff
+</style>

@@ -3,8 +3,6 @@ import App from './App.vue'
 import store from './store'
 import router from './router'
 import { sync } from 'vuex-router-sync'
-import resource from 'vue-resource'
-
 import Axios from 'axios'
 
 // import Mint from 'mint-ui'
@@ -19,7 +17,7 @@ import Axios from 'axios'
 // this registers `store.state.route`
 sync(store, router)
 
-//类似于vue-resource的调用方法 之后可以在实例中直接用 this.$http.get()等
+// 类似于vue-resource的调用方法 之后可以在实例中直接用 this.$http.get()等
 Vue.prototype.$http = Axios
 // Vue.use(resource)
 

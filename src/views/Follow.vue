@@ -54,18 +54,18 @@ export default {
         step: me.step,
         id: me.$store.state.currentUser.gapper_id
       }).then(res => {
-        if (res.body.length === 0) {
+        if (res.data.length === 0) {
           me.allLoaded = true
-        } else if (res.body.length < 15) {
+        } else if (res.data.length < 15) {
           me.allLoaded = true
-          for (let i in res.body) {
-            let item = res.body[i]
+          for (let i in res.data) {
+            let item = res.data[i]
             if (item.id && item.name) me.displayItems.push(item)
           }
           me.start = me.start + me.step
         } else {
-          for (let i in res.body) {
-            let item = res.body[i]
+          for (let i in res.data) {
+            let item = res.data[i]
             if (item.id && item.name) me.displayItems.push(item)
           }
           me.start = me.start + me.step

@@ -91,9 +91,9 @@ export default {
         start: me.start,
         step: me.step
       }).then(res => {
-        if (res.body.length > 0) {
-          for (let i in res.body) {
-            let item = res.body[i]
+        if (res.data.length > 0) {
+          for (let i in res.data) {
+            let item = res.data[i]
             if (item.id && item.name) me.displayItems.push(item)
           }
           me.start = me.start + me.step
