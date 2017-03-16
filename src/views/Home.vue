@@ -82,12 +82,17 @@ export default {
     },
     // 加载仪器数据
     loadBottom () {
-      let that = this
+      let vm = this
       this.$store.dispatch('FETCH_EQUIPMENTS', {
-        start: that.start,
-        step: that.step
+        start: vm.start,
+        step: vm.step
       }).then((res) => {
-        console.log('return', res)
+        for (let i in res) {
+          vm.displayItems.push({
+            'id': i,
+            'name': res[i]
+          })
+        }
       })
     }
   },

@@ -2,24 +2,24 @@
   <li class="equipment-item" @click.stop="goToEqInfo(item.uuid)">
     <div class="media">
       <div class="media-left">
-        <img :src="item.icon ? item.icon : src" height="86px" width="86px" class="img-rounded">
+        <img :src="theItem.icon ? item.icon : src" height="86px" width="86px" class="img-rounded">
       </div>
       <div class="media-body">
         <div class="title">
           {{ item.name }}
           <div class="tags">
-            <span v-show="item.can_reserv" class="label label-primary">预约</span>&#160;
-            <span v-show="item.can_sample" class="label label-primary">送样</span>
+            <span v-show="theItem.can_reserv" class="label label-primary">预约</span>&#160;
+            <span v-show="theItem.can_sample" class="label label-primary">送样</span>
           </div>
         </div>
         </p>
         <p>
           <i class="fa fa-user fa-fw"></i>
-          {{  item.contact_name }}
+          {{  theItem.contact_name }}
         </p>
         <p>
           <i class="fa fa-map-marker fa-fw"></i>
-          {{ item.location }}
+          {{ theItem.location }}
         </p>
       </div>
     </div>
@@ -27,6 +27,10 @@
 </template>
 
 <script>
+function fetchEquipment (vm) {
+  return vm.$store.dispatch('FETCH_EQUIPMENT', vm.item.id)
+}
+
 export default {
   props: ['item'],
 
@@ -40,6 +44,17 @@ export default {
     goToEqInfo (id = 0) {
       this.$router.push({name: 'equipment-info', params: { id: id }})
     }
+  },
+
+  computed: {
+    theItem: function () {
+      return this.$store.state.equipments[this.item.id]
+    }
+  },
+
+  preFetch: fetchEquipment,
+  beforeMount () {
+    fetchEquipment(this)
   }
 }
 </script>

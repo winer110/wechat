@@ -1,7 +1,7 @@
 let config = require('../../config/orm')
 let orm = require('./orm')
 
-module.exports = class Equipment {
+module.exports = class Equipments {
 
   constructor () {
     Object.assign(this, orm)

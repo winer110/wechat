@@ -1,18 +1,22 @@
-let Vue = require('vue')
-let Axios = require('axios')
 let config = require('../../config/orm')
-
-Vue.prototype.$http = Axios
+let orm = require('./orm')
 
 module.exports = class Equipment {
+
   constructor () {
-    console.log(this._url)
-    this._url = config.equipment.url
+    Object.assign(this, orm)
   }
 
-  fetch () {
-    return Vue.http.get(this._url).then(res => {
-      return res.json()
+  fetch (...args) {
+    return this.rpc().post(config.equipment.url, {
+      'jsonrpc': '2.0',
+      'method': config.equipment.getEquipment,
+      'id': 1,
+      'params': {
+        'id': args[0]
+      }
+    }).then(res => {
+      return res.data.result
     })
   }
 }

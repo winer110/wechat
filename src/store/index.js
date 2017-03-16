@@ -22,6 +22,12 @@ const store = new Vuex.Store({
       return api.token().then(result => {
         return api.fetch(result.token, params.start, params.step)
       })
+    },
+    FETCH_EQUIPMENT: ({state, commit}, id) => {
+      let api = new Api('equipment')
+      return state.equipments.hasOwnProperty(id)
+        ? Promise.resolve(state.equipments[id])
+        : api.fetch(id).then(equipment => commit('SET_EQUIPMENT', { equipment }))
     }
   },
 
@@ -30,8 +36,8 @@ const store = new Vuex.Store({
       state.currentUser = users.values
     },
 
-    SET_EQUIPMENT: (state, { equipments }) => {
-      state.equipments = equipments
+    SET_EQUIPMENT: (state, { equipment }) => {
+      Vue.set(state.equipments, equipment.id, equipment)
     }
   },
 

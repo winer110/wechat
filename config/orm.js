@@ -2,7 +2,8 @@ module.exports = {
   equipment: {
     url: 'http://directory.17kong.com/api',
     search: 'YiQiKong/Directory/searchEquipments',
-    getlist: 'YiQiKong/Directory/getEquipments'
+    getlist: 'YiQiKong/Directory/getEquipments',
+    getEquipment: 'YiQiKong/Directory/getEquipment'
   },
   reserve: {
     url: 'http://reserve.17kong.com/api',
