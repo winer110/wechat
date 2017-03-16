@@ -17,6 +17,7 @@ import MtHeader from '../components/Header.vue'
 import MtFooter from '../components/Footer.vue'
 import EqItem from '../components/equipment/Item.vue'
 import { Loadmore, Toast } from 'mint-ui'
+
 export default {
   name: 'home',
 
@@ -37,9 +38,6 @@ export default {
       start: 0,
       step: 15
     }
-  },
-  // 服务端渲染时候该方法不加载
-  beforeMount () {
   },
 
   methods: {
@@ -83,32 +81,27 @@ export default {
       this.keywords = ''
     },
     // 加载仪器数据
-    loadBottom (fn = () => {}) {
-      let me = this
-      me.$http.post('/api/searchEquipments', {
-        scope: me.scope,
-        keywords: me.keywords,
-        start: me.start,
-        step: me.step
+    loadBottom () {
+      let that = this
+      this.$store.dispatch('FETCH_EQUIPMENT', {
+        start: that.start,
+        step: that.step
       }).then(res => {
-        if (res.data.length > 0) {
+        console.log(res)
+        if (res.length > 0) {
           for (let i in res.data) {
             let item = res.data[i]
-            if (item.id && item.name) me.displayItems.push(item)
+            if (item.id && item.name) {
+              that.displayItems.push(item)
+            }
           }
-          me.start = me.start + me.step
+          that.start = that.start + that.step
         } else {
-          me.allLoaded = true
+          that.allLoaded = true
         }
-        me.$refs.loadmore.onBottomLoaded()
-        fn()
-      }, res => {
-        me.$refs.loadmore.onBottomLoaded()
-        fn()
       })
     }
   },
-
   created () {
     this.loadBottom()
   }

@@ -16,6 +16,7 @@
 import MtFooter from '../components/Footer.vue'
 import EqItem from '../components/equipment/Item.vue'
 import { Loadmore, Header, Toast } from 'mint-ui'
+
 export default {
   name: 'follow',
 
