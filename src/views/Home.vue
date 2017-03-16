@@ -83,22 +83,11 @@ export default {
     // 加载仪器数据
     loadBottom () {
       let that = this
-      this.$store.dispatch('FETCH_EQUIPMENT', {
+      this.$store.dispatch('FETCH_EQUIPMENTS', {
         start: that.start,
         step: that.step
-      }).then(res => {
-        console.log(res)
-        if (res.length > 0) {
-          for (let i in res.data) {
-            let item = res.data[i]
-            if (item.id && item.name) {
-              that.displayItems.push(item)
-            }
-          }
-          that.start = that.start + that.step
-        } else {
-          that.allLoaded = true
-        }
+      }).then((res) => {
+        console.log('return', res)
       })
     }
   },

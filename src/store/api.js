@@ -3,7 +3,12 @@ export default class Api {
     let o = require(`../orm/${name}`)
     this.object = Reflect.construct(o, args)
   }
-  fetch (params) {
-    return this.object.fetch(params)
+
+  token () {
+    return this.object.token()
+  }
+
+  fetch (...args) {
+    return Promise.resolve(this.object.fetch(...args))
   }
 }

@@ -17,11 +17,11 @@ const store = new Vuex.Store({
         ? Promise.resolve(state.currentUser)
         : api.fetch().then(users => commit('SET_USER', { users }))
     },
-    FETCH_EQUIPMENT: ({ commit, state }, params) => {
+    FETCH_EQUIPMENTS: (state, params) => {
       let api = new Api('equipments')
-      return Object.keys(state.equipments).length > 0
-        ? Promise.resolve(state.equipments)
-        : api.fetch(params).then(equipments => commit('SET_EQUIPMENT', { equipments }))
+      return api.token().then(result => {
+        return api.fetch(result.token, params.start, params.step)
+      })
     }
   },
 
