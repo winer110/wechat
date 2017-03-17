@@ -6,10 +6,11 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    currentUser: {},
+    currentUser: {
+      'id': 1
+    },
     equipments: {}
   },
-
   actions: {
     FETCH_USER: ({ commit, state }) => {
       let api = new Api('user')
@@ -24,10 +25,10 @@ const store = new Vuex.Store({
       })
     },
     FETCH_EQUIPMENT: ({state, commit}, id) => {
-      let api = new Api('equipment')
-      return state.equipments.hasOwnProperty(id)
+      let api = new Api('equipments')
+      return state.equipments[id]
         ? Promise.resolve(state.equipments[id])
-        : api.fetch(id).then(equipment => commit('SET_EQUIPMENT', { equipment }))
+        : api.get(id).then(equipment => commit('SET_EQUIPMENT', { equipment }))
     }
   },
 
@@ -39,9 +40,6 @@ const store = new Vuex.Store({
     SET_EQUIPMENT: (state, { equipment }) => {
       Vue.set(state.equipments, equipment.id, equipment)
     }
-  },
-
-  getters: {
   }
 })
 

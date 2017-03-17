@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import { Cell, Header, Toast, Button, Spinner, Badge } from 'mint-ui'
+import { Cell, Header, Button, Spinner, Badge } from 'mint-ui'
 import io from 'socket.io-client'
 export default {
   name: 'equipment-info',
@@ -205,27 +205,14 @@ export default {
   },
 
   created () {
-    let toast = Toast({
-      message: '请等待',
-      iconClass: 'fa fa-spin fa-spinner fa-2x'
-    })
-    let me = this
-    me.$http.post('/api/getEquipment', {
-      id: me.$router.currentRoute.params.id
-    }).then(res => {
-      me.equipment = res.data
-      toast.close()
-      me.socket = io.connect(me.equipment.socket_url, {
-        path: '/socket.io',
-        autoConnect: false,
-        forceNew: true,
-        timeout: 10000
-      })
-      me.getUseStatus()
-      me.getFollowStatus()
-    }, res => {
-      me.equipment = {}
-      toast.close()
+    // let toast = Toast({
+    //   message: '请等待',
+    //   iconClass: 'fa fa-spin fa-spinner fa-2x'
+    // })
+    let vm = this
+    let equipmentID = vm.$router.currentRoute.params.id
+    this.$store.dispatch('FETCH_EQUIPMENT', equipmentID).then(res => {
+      Object.assign(vm.equipment, vm.$store.state.equipments[equipmentID])
     })
   }
 }

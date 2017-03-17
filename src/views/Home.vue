@@ -81,18 +81,30 @@ export default {
       this.keywords = ''
     },
     // 加载仪器数据
-    loadBottom () {
+    loadBottom (fn = () => {}) {
       let vm = this
       this.$store.dispatch('FETCH_EQUIPMENTS', {
         start: vm.start,
         step: vm.step
       }).then((res) => {
-        for (let i in res) {
-          vm.displayItems.push({
-            'id': i,
-            'name': res[i]
-          })
+        if (res) {
+          for (let i in res) {
+            if (res[i]) {
+              vm.displayItems.push({
+                id: i,
+                name: res[i]
+              })
+            }
+          }
+          vm.start = vm.start + vm.step
+        } else {
+          vm.allLoaded = true
         }
+        vm.$refs.loadmore.onBottomLoaded()
+        fn()
+      }, res => {
+        vm.$refs.loadmore.onBottomLoaded()
+        fn()
       })
     }
   },

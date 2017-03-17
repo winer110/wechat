@@ -1,25 +1,25 @@
 <template>
-  <li class="equipment-item" @click.stop="goToEqInfo(item.uuid)">
+  <li class="equipment-item" @click.stop="goToEqInfo(item.id)">
     <div class="media">
       <div class="media-left">
-        <img :src="theItem.icon ? item.icon : src" height="86px" width="86px" class="img-rounded">
+        <img :src="equipment.icon" height="86px" width="86px" class="img-rounded">
       </div>
       <div class="media-body">
         <div class="title">
           {{ item.name }}
           <div class="tags">
-            <span v-show="theItem.can_reserv" class="label label-primary">预约</span>&#160;
-            <span v-show="theItem.can_sample" class="label label-primary">送样</span>
+            <span v-show="equipment.can_reserv" class="label label-primary">预约</span>&#160;
+            <span v-show="equipment.can_sample" class="label label-primary">送样</span>
           </div>
         </div>
         </p>
         <p>
           <i class="fa fa-user fa-fw"></i>
-          {{  theItem.contact_name }}
+          {{  equipment.contact_name }}
         </p>
         <p>
           <i class="fa fa-map-marker fa-fw"></i>
-          {{ theItem.location }}
+          {{ equipment.location }}
         </p>
       </div>
     </div>
@@ -27,16 +27,19 @@
 </template>
 
 <script>
-function fetchEquipment (vm) {
-  return vm.$store.dispatch('FETCH_EQUIPMENT', vm.item.id)
-}
-
 export default {
   props: ['item'],
 
   data () {
     return {
-      src: '/public/img/equipment/default.png'
+      equipment: {
+        icon: '/public/img/equipment/default.png',
+        can_reserv: false,
+        can_sample: false,
+        name: '',
+        location: '',
+        contact_name: ''
+      }
     }
   },
 
@@ -46,15 +49,14 @@ export default {
     }
   },
 
-  computed: {
-    theItem: function () {
-      return this.$store.state.equipments[this.item.id]
-    }
-  },
-
-  preFetch: fetchEquipment,
-  beforeMount () {
-    fetchEquipment(this)
+  mounted () {
+    let vm = this
+    this.$store.dispatch('FETCH_EQUIPMENT', this.item.id).then(res => {
+      Object.assign(vm.equipment, vm.$store.state.equipments[this.item.id])
+      if (!vm.equipment.icon) {
+        vm.equipment.icon = '/public/img/equipment/default.png'
+      }
+    })
   }
 }
 </script>

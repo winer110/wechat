@@ -33,6 +33,22 @@ module.exports = class Equipments {
         step: args[2]
       }
     }).then(res => {
+      console.log(res.data)
+      return res.data.result
+    }, res => {
+      console.log('failed')
+    })
+  }
+
+  get (...args) {
+    return this.rpc().post(config.equipment.url, {
+      'jsonrpc': '2.0',
+      'method': config.equipment.getEquipment,
+      'id': 1,
+      'params': {
+        'id': args[0]
+      }
+    }).then(res => {
       return res.data.result
     })
   }

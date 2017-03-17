@@ -11,4 +11,8 @@ export default class Api {
   fetch (...args) {
     return Promise.resolve(this.object.fetch(...args))
   }
+
+  get (...args) {
+    return Promise.resolve(this.object.get(...args))
+  }
 }
