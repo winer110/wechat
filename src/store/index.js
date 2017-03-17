@@ -4,12 +4,14 @@ import Api from './api'
 
 Vue.use(Vuex)
 
+let queue = null
 const store = new Vuex.Store({
   state: {
     currentUser: {
       'id': 1
     },
-    equipments: {}
+    equipments: [],
+    items: {}
   },
   actions: {
     FETCH_USER: ({ commit, state }) => {
@@ -29,6 +31,27 @@ const store = new Vuex.Store({
       return state.equipments[id]
         ? Promise.resolve(state.equipments[id])
         : api.get(id).then(equipment => commit('SET_EQUIPMENT', { equipment }))
+    },
+    FETCH_EQUIPMENT_QUEUE: ({state, commit}, item) => {
+      commit('SET_EQUIPMENT_QUEUE', item)
+    },
+    FETCH_QUEUE: ({state, commit}) => {
+      if (queue === null) {
+        queue = () => {
+          let api = new Api('equipments')
+          let id = state.equipments[0].item.id
+          state.equipments.shift()
+          api.get(id).then(equipment => {
+            commit('SET_EQUIPMENT', { equipment })
+            if (state.equipments.length === 0) {
+              queue = null
+            } else {
+              queue()
+            }
+          })
+        }
+        queue()
+      }
     }
   },
 
@@ -38,7 +61,12 @@ const store = new Vuex.Store({
     },
 
     SET_EQUIPMENT: (state, { equipment }) => {
-      Vue.set(state.equipments, equipment.id, equipment)
+      Vue.set(state.items, equipment)
+    },
+
+    SET_EQUIPMENT_QUEUE: (state, { item }) => {
+      state.equipments.unshift(item)
+      store.dispatch('FETCH_QUEUE')
     }
   }
 })

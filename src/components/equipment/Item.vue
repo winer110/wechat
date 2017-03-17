@@ -50,12 +50,9 @@ export default {
   },
 
   mounted () {
-    let vm = this
-    this.$store.dispatch('FETCH_EQUIPMENT', this.item.id).then(res => {
-      Object.assign(vm.equipment, vm.$store.state.equipments[this.item.id])
-      if (!vm.equipment.icon) {
-        vm.equipment.icon = '/public/img/equipment/default.png'
-      }
+    this.$store.dispatch('FETCH_EQUIPMENT_QUEUE', {
+      id: this.item.id,
+      item: this
     })
   }
 }

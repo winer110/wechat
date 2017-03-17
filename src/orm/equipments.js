@@ -33,7 +33,6 @@ module.exports = class Equipments {
         step: args[2]
       }
     }).then(res => {
-      console.log(res.data)
       return res.data.result
     }, res => {
       console.log('failed')
