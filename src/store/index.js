@@ -40,9 +40,8 @@ const store = new Vuex.Store({
         queue = () => {
           let api = new Api('equipments')
           let id = state.equipments[0].item.id
-          state.equipments.shift()
           api.get(id).then(equipment => {
-            commit('SET_EQUIPMENT', { equipment })
+            commit('SET_EQUIPMENT', {equipment, id})
             if (state.equipments.length === 0) {
               queue = null
             } else {
@@ -60,8 +59,10 @@ const store = new Vuex.Store({
       state.currentUser = users.values
     },
 
-    SET_EQUIPMENT: (state, { equipment }) => {
+    SET_EQUIPMENT: (state, { equipment, id }) => {
       Vue.set(state.items, equipment)
+      let emitVm = state.equipments.shift()
+      emitVm.hello('ss')
     },
 
     SET_EQUIPMENT_QUEUE: (state, { item }) => {

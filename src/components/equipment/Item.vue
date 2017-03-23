@@ -46,6 +46,9 @@ export default {
   methods: {
     goToEqInfo (id = 0) {
       this.$router.push({name: 'equipment-info', params: { id: id }})
+    },
+    hello (message) {
+      console.log(message)
     }
   },
 
