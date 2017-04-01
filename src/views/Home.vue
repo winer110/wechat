@@ -100,10 +100,10 @@ export default {
         } else {
           vm.allLoaded = true
         }
-        vm.$refs.loadmore.onBottomLoaded()
+        // vm.$refs.loadmore.onBottomLoaded()
         fn()
       }, res => {
-        vm.$refs.loadmore.onBottomLoaded()
+        // vm.$refs.loadmore.onBottomLoaded()
         fn()
       })
     }

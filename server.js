@@ -121,7 +121,6 @@ app.use('/wechat/', (req, res, next) => {
   } else {
     // 拼装数据进行远程到GateWay进行微信OpenId的信息验证获取
     // TODO 如果是线上程序需要跳转到Weixin-17kong-Gateway进行验证
-    next()
     res.redirect('/wechatAuth')
   }
 })
@@ -140,6 +139,7 @@ app.get('*', (req, res) => {
 
   res.setHeader("Content-Type", "text/html");
   var s = Date.now()
+  console.log('wxy', req.session.user)
   const context = { url: req.url, currentUser: req.session.user }
   const renderStream = renderer.renderToStream(context)
 
