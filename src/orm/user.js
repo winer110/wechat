@@ -1,15 +1,15 @@
-let Vue = require('vue')
-let Axios = require('axios')
 let config = require('../../config/orm')
-
-Vue.prototype.$http = Axios
+let orm = require('./orm')
 
 module.exports = class User {
   constructor () {
-    let rpc = config.user.url
-    console.log(`test the ::: ${rpc}`)
+    Object.assign(this, orm)
   }
 
-  fetch () {
+  fetch (...args) {
+    let params = {
+      id: args[0]
+    }
+    return this.rpcPost(config.user.url, config.user.get, params)
   }
 }

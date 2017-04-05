@@ -5,20 +5,19 @@ import Api from './api'
 Vue.use(Vuex)
 
 let queue = null
+
 const store = new Vuex.Store({
   state: {
-    currentUser: {
-      'id': 1
-    },
+    currentUser: {},
     equipments: [],
     items: {}
   },
   actions: {
     FETCH_USER: ({ commit, state }) => {
       let api = new Api('user')
-      return Object.keys(state.currentUser).length > 0
+      return state.currentUser
         ? Promise.resolve(state.currentUser)
-        : api.fetch().then(users => commit('SET_USER', { users }))
+        : api.fetch('o_UpduMUIn7STnCe9vpZ8EfVqlIg').then(users => commit('SET_USER', { users }))
     },
     FETCH_EQUIPMENTS: (state, params) => {
       let api = new Api('equipments')
@@ -28,12 +27,16 @@ const store = new Vuex.Store({
     },
     FETCH_EQUIPMENT: ({state, commit}, id) => {
       let api = new Api('equipments')
-      return state.equipments[id]
-        ? Promise.resolve(state.equipments[id])
+      return state.items[id]
+        ? Promise.resolve(state.items[id])
         : api.get(id).then(equipment => commit('SET_EQUIPMENT', { equipment }))
     },
     FETCH_EQUIPMENT_QUEUE: ({state, commit}, item) => {
-      commit('SET_EQUIPMENT_QUEUE', item)
+      if (state.items[item.id]) {
+        item.item.getInfo(state.items[item.id])
+      } else {
+        commit('SET_EQUIPMENT_QUEUE', item)
+      }
     },
     FETCH_QUEUE: ({state, commit}) => {
       if (queue === null) {
@@ -56,17 +59,17 @@ const store = new Vuex.Store({
 
   mutations: {
     SET_USER: (state, { users }) => {
-      state.currentUser = users.values
+      state.currentUser = users
     },
 
     SET_EQUIPMENT: (state, { equipment, id }) => {
-      Vue.set(state.items, equipment)
+      Vue.set(state.items, id, equipment)
       let emitVm = state.equipments.shift()
-      emitVm.hello('ss')
+      emitVm.getInfo(equipment)
     },
 
     SET_EQUIPMENT_QUEUE: (state, { item }) => {
-      state.equipments.unshift(item)
+      state.equipments.push(item)
       store.dispatch('FETCH_QUEUE')
     }
   }

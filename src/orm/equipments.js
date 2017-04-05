@@ -22,32 +22,18 @@ module.exports = class Equipments {
   }
 
   fetch (...args) {
-    return this.rpc().post(config.equipment.url, {
-      'jsonrpc': '2.0',
-      'method': config.equipment.getlist,
-      'id': 1,
-      'params': {
-        token: args[0],
-        start: args[1],
-        step: args[2]
-      }
-    }).then(res => {
-      return res.data.result
-    }, res => {
-      console.log('failed')
-    })
+    let params = {
+      token: args[0],
+      start: args[1],
+      step: args[2]
+    }
+    return this.rpcPost(config.equipment.url, config.equipment.getlist, params)
   }
 
   get (...args) {
-    return this.rpc().post(config.equipment.url, {
-      'jsonrpc': '2.0',
-      'method': config.equipment.getEquipment,
-      'id': 1,
-      'params': {
-        'id': args[0]
-      }
-    }).then(res => {
-      return res.data.result
-    })
+    let params = {
+      'id': args[0]
+    }
+    return this.rpcPost(config.equipment.url, config.equipment.getEquipment, params)
   }
 }

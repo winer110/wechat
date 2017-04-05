@@ -100,6 +100,7 @@ export default {
   },
   // 服务端渲染时候该方法不加载
   beforeMount () {
+    this.$store.dispatch('FETCH_USER')
   },
 
   methods: {
@@ -201,19 +202,31 @@ export default {
   // 跳转到预约界面
     reservClick () {
       this.$router.push({name: 'equipment-reserv', params: { id: this.equipment.uuid }})
+    },
+    getInfo (data) {
+      this.equipment = Object.assign(this.equipment, data)
+      if (!data.icon) {
+        this.equipment.icon = '/public/img/equipment/default.png'
+      }
     }
   },
 
-  created () {
-    // let toast = Toast({
-    //   message: '请等待',
-    //   iconClass: 'fa fa-spin fa-spinner fa-2x'
-    // })
-    let vm = this
-    let equipmentID = vm.$router.currentRoute.params.id
-    this.$store.dispatch('FETCH_EQUIPMENT', equipmentID).then(res => {
-      Object.assign(vm.equipment, vm.$store.state.equipments[equipmentID])
+  mounted () {
+    this.$store.dispatch('FETCH_EQUIPMENT_QUEUE', {
+      id: this.$router.currentRoute.params.id,
+      item: this
     })
+  },
+
+  created () {
+    this.socket = io.connect(this.equipment.socket_url, {
+      path: '/socket.io',
+      autoConnect: false,
+      forceNew: true,
+      timeout: 10000
+    })
+    this.getUseStatus()
+    this.getFollowStatus()
   }
 }
 </script>

@@ -44,11 +44,14 @@ export default {
   },
 
   methods: {
-    goToEqInfo (id = 0) {
-      this.$router.push({name: 'equipment-info', params: { id: id }})
+    goToEqInfo () {
+      this.$router.push({name: 'equipment-info', params: { id: this.item.id }})
     },
-    hello (message) {
-      console.log(message)
+    getInfo (data) {
+      this.equipment = Object.assign(this.equipment, data)
+      if (!data.icon) {
+        this.equipment.icon = '/public/img/equipment/default.png'
+      }
     }
   },
 

@@ -9,5 +9,15 @@ module.exports = {
         return JSON.stringify(data)
       }]
     })
+  },
+  rpcPost (url, method, params) {
+    return this.rpc().post(url, {
+      'jsonrpc': '2.0',
+      'method': method,
+      'id': 1,
+      'params': params
+    }).then(res => {
+      return res.data.result
+    })
   }
 }

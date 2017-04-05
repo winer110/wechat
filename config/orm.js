@@ -17,7 +17,8 @@ module.exports = {
     url: 'http://billing.17kong.com/api'
   },
   user: {
-    url: 'http://user.17kong.com/api'
+    url: 'http://user.17kong.com/api',
+    get: 'YiQiKong/User/getInfo'
   },
   follow: {
     url: 'http://user.17kong.com/api',

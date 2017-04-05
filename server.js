@@ -139,7 +139,6 @@ app.get('*', (req, res) => {
 
   res.setHeader("Content-Type", "text/html");
   var s = Date.now()
-  console.log('wxy', req.session.user)
   const context = { url: req.url, currentUser: req.session.user }
   const renderStream = renderer.renderToStream(context)
 

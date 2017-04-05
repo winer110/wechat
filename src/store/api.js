@@ -1,4 +1,4 @@
-export default class Api {
+module.exports = class Api {
   constructor (name, ...args) {
     let o = require(`../orm/${name}`)
     this.object = Reflect.construct(o, args)
