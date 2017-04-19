@@ -7,8 +7,6 @@ module.exports = {
   entry: {
     app: './src/client-entry.js',
     vendor: [
-      'firebase/app',
-      'firebase/database',
       'vue',
       'vue-router',
       'vuex',
@@ -52,7 +50,7 @@ module.exports = {
         loader: 'buble-loader',
         exclude: /node_modules/,
         options: {
-          objectAssign: 'Object.assign'
+          objectAssign: 'Object.assign',
         }
       },
       {

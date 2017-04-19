@@ -4,7 +4,7 @@ const isProd = process.env.NODE_ENV === 'production'
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
-const favicon = require('serve-favicon')
+// const favicon = require('serve-favicon')
 const compression = require('compression')
 const serialize = require('serialize-javascript')
 const resolve = file => path.resolve(__dirname, file)

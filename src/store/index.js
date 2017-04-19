@@ -1,99 +1,122 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { fetchItems, fetchIdsByType, fetchUser } from './api'
+import Api from './api'
 
 Vue.use(Vuex)
 
+let queue = null
+
 const store = new Vuex.Store({
   state: {
-    activeType: null,
-    itemsPerPage: 20,
-    items: {/* [id: number]: Item */},
-    users: {/* [id: string]: User */},
-    lists: {
-      top: [/* number */],
-      new: [],
-      show: [],
-      ask: [],
-      job: []
-    },
-    currentUser: {}
+    currentUser: {},
+    equipments: [],
+    items: {},
+    token: {},
+    code: ''
   },
-
   actions: {
-    // ensure data for rendering given list type
-    FETCH_LIST_DATA: ({ commit, dispatch, state }, { type }) => {
-      commit('SET_ACTIVE_TYPE', { type })
-      return fetchIdsByType(type)
-        .then(ids => commit('SET_LIST', { type, ids }))
-        .then(() => dispatch('ENSURE_ACTIVE_ITEMS'))
+    FETCH_FOLLOWS: ({state, commit}, params) => {
+      // let api = new Api('follow')
+      // return
     },
-
-    // ensure all active items are fetched
-    ENSURE_ACTIVE_ITEMS: ({ dispatch, getters }) => {
-      return dispatch('FETCH_ITEMS', {
-        ids: getters.activeIds
-      })
+    FETCH_CODE: ({ commit, state }) => {
+      console.log('hello')
     },
-
-    FETCH_ITEMS: ({ commit, state }, { ids }) => {
-      // only fetch items that we don't already have.
-      ids = ids.filter(id => !state.items[id])
-      if (ids.length) {
-        return fetchItems(ids).then(items => commit('SET_ITEMS', { items }))
+    FETCH_USER: ({ commit, state }) => {
+      let api = new Api('user')
+      return state.currentUser
+        ? Promise.resolve(state.currentUser)
+        : api.fetch('o_UpduMUIn7STnCe9vpZ8EfVqlIg').then(users => {
+          commit('SET_USER', { users })
+        })
+    },
+    FETCH_EQUIPMENTS: ({state, commit}, params) => {
+      let api = new Api('equipments')
+      if (!state.token.result) {
+        return api.token().then(result => {
+          commit('SET_TOKEN', { result })
+          return api.fetch(result.token, params.start, params.step)
+        })
       } else {
-        return Promise.resolve()
+        return api.fetch(state.token.result.token, params.start, params.step)
       }
     },
-
-    FETCH_USER: ({ commit, state }, { id }) => {
-      return state.users[id]
-        ? Promise.resolve(state.users[id])
-        : fetchUser(id).then(user => commit('SET_USER', { user }))
+    FETCH_EQUIPMENT: ({state, commit}, id) => {
+      let api = new Api('equipments')
+      if (state.items[id]) {
+        return Promise.resolve(state.items[id])
+      } else {
+        return api.get(id).then(equipment => {
+          let single = 1
+          equipment = equipment.result
+          state.equipments.splice(0, state.equipments.length)
+          commit('SET_EQUIPMENT', { equipment, id, single })
+          return equipment
+        })
+      }
+    },
+    FETCH_EQUIPMENT_QUEUE: ({state, commit}, item) => {
+      if (state.items[item.id]) {
+        item.item.getInfo(state.items[item.id])
+      } else {
+        commit('SET_EQUIPMENT_QUEUE', item)
+      }
+    },
+    FETCH_QUEUE: ({state, commit}) => {
+      if (queue === null) {
+        queue = () => {
+          let api = new Api('equipments')
+          let id = state.equipments[0].item.id
+          api.get(id).then(equipment => {
+            let single = 0
+            equipment = equipment.result
+            commit('SET_EQUIPMENT', { equipment, id, single })
+            if (state.equipments.length === 0) {
+              queue = null
+            } else {
+              queue()
+            }
+          })
+        }
+        queue()
+      }
+    },
+    FETCH_STATUS: (state, user, id) => {
+      let api = new Api('equipments')
+      return api.status(user, id)
+    },
+    FECTH_RESERVES: (state, params) => {
+      let api = new Api('reserve')
+      return api.fetch(params).then(res => {
+        console.log(res)
+      })
     }
   },
 
   mutations: {
-    SET_ACTIVE_TYPE: (state, { type }) => {
-      state.activeType = type
+    SET_USER: (state, users) => {
+      state.currentUser = users.result
     },
 
-    SET_LIST: (state, { type, ids }) => {
-      state.lists[type] = ids
+    SET_CODE: (state, code) => {
+      state.code = code
     },
 
-    SET_ITEMS: (state, { items }) => {
-      items.forEach(item => {
-        if (item) {
-          Vue.set(state.items, item.id, item)
-        }
-      })
-    },
-
-    SET_USER: (state, { user }) => {
-      Vue.set(state.users, user.id, user)
-    }
-  },
-
-  getters: {
-    // ids of the items that should be currently displayed based on
-    // current list type and current pagination
-    activeIds (state) {
-      const { activeType, itemsPerPage, lists } = state
-      const page = Number(state.route.params.page) || 1
-      if (activeType) {
-        const start = (page - 1) * itemsPerPage
-        const end = page * itemsPerPage
-        return lists[activeType].slice(start, end)
-      } else {
-        return []
+    SET_EQUIPMENT: (state, { equipment, id, single }) => {
+      Vue.set(state.items, id, equipment)
+      if (!single && state.equipments.length > 0) {
+        let emitVm = state.equipments.shift()
+        emitVm.getInfo(equipment)
       }
     },
 
-    // items that should be currently displayed.
-    // this Array may not be fully fetched.
-    activeItems (state, getters) {
-      return getters.activeIds.map(id => state.items[id]).filter(_ => _)
+    SET_EQUIPMENT_QUEUE: (state, { item }) => {
+      state.equipments.push(item)
+      store.dispatch('FETCH_QUEUE')
+    },
+
+    SET_TOKEN: (state, token) => {
+      state.token = token
     }
   }
 })

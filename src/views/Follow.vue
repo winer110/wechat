@@ -16,6 +16,7 @@
 import MtFooter from '../components/Footer.vue'
 import EqItem from '../components/equipment/Item.vue'
 import { Loadmore, Header, Toast } from 'mint-ui'
+
 export default {
   name: 'follow',
 
@@ -49,23 +50,31 @@ export default {
     // 加载仪器数据
     loadBottom (fn = () => {}) {
       let me = this
+      // this.$store.dispatch('FETCH_FOLLOWS', {
+      //   start: vm.start,
+      //   step: vm.step
+      // }).then((res) => {
+      //   console.log(res)
+      // })
+      // let me = this
+      console.log(me.$store.state.currentUser.result.gapper_id)
       me.$http.post('/api/searchFollows', {
         start: me.start,
         step: me.step,
-        id: me.$store.state.currentUser.gapper_id
+        id: me.$store.state.currentUser.result.gapper_id
       }).then(res => {
-        if (res.body.length === 0) {
+        if (res.data.length === 0) {
           me.allLoaded = true
-        } else if (res.body.length < 15) {
+        } else if (res.data.length < 15) {
           me.allLoaded = true
-          for (let i in res.body) {
-            let item = res.body[i]
+          for (let i in res.data) {
+            let item = res.data[i]
             if (item.id && item.name) me.displayItems.push(item)
           }
           me.start = me.start + me.step
         } else {
-          for (let i in res.body) {
-            let item = res.body[i]
+          for (let i in res.data) {
+            let item = res.data[i]
             if (item.id && item.name) me.displayItems.push(item)
           }
           me.start = me.start + me.step

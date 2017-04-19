@@ -79,6 +79,7 @@ router
   })
   // 获取关注对象的列表信息
   .post('/searchFollows', (req, res) => {
+    console.log('you are searchFollow')
     let Indexed = _Indexed('follow')
     let O = _O('equipment')
     let params = req.body || {}

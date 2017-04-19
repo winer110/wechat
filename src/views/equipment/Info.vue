@@ -69,8 +69,9 @@
 </template>
 
 <script>
-import { Cell, Header, Toast, Button, Spinner, Badge } from 'mint-ui'
+import { Cell, Header, Button, Spinner, Badge } from 'mint-ui'
 import io from 'socket.io-client'
+
 export default {
   name: 'equipment-info',
 
@@ -95,56 +96,43 @@ export default {
       proxyUrl: 'http://proxy.17kong.com/',
       status: false,
       checkButtonText: false,
-      checkAction: 0
+      checkAction: 0,
+      code: ''
     }
   },
   // 服务端渲染时候该方法不加载
   beforeMount () {
+    this.$store.dispatch('FETCH_USER')
   },
-
   methods: {
+  // 返回上一级
     goBack () {
       this.$router.go(-1)
     },
-
+  // 获得用户状态
     getUseStatus () {
       let me = this
       let validationMessage = {
         id: me.$store.state.currentUser.id,
-        email: me.$store.state.currentUser.email,
-        source_name: me.equipment.source_name,
-        socket: {}
+        email: me.$store.state.currentUser.email
       }
       let handlerListen = msg => {
+        // 不走代理服务
         me.socket
           .on('auth-reback', data => {
             if (data.authed !== true) return false
+
             me.$http.post('/api/decryptUserInfo', {code: data.code}).then(res => {
-              if (res.body.success) {
-                let code = res.body.code
+              if (res.data.success) {
+                me.code = res.data.code
                 let statusParams = {
                   equipment: me.equipment.uuid,
                   source_name: me.equipment.source_name,
                   uuid: `wechatUUID_{{me.equipment.uuid}}`
                 }
-                let checkParams = {
-                  user: me.$store.state.currentUser.gapper_id,
-                  equipment: me.equipment.uuid,
-                  source_name: me.equipment.source_name,
-                  user_info: {
-                    gapper_id: me.$store.state.currentUser.gapper_id,
-                    username: me.$store.state.currentUser.name,
-                    email: me.$store.state.currentUser.email
-                  },
-                  uuid: `wechatUUID_{{me.equipment.uuid}}`
-                }
                 me.socket.emit('yiqikong-get-status', {
-                  code: code,
+                  code: me.code,
                   form: JSON.stringify(statusParams)
-                })
-                me.socket.emit('yiqikong-check-permission', {
-                  code: code,
-                  form: JSON.stringify(checkParams)
                 })
               }
             }, res => {
@@ -152,7 +140,7 @@ export default {
             })
           })
           .on('yiqikong-check-permission-reback', data => {
-            console.log('yiqikong-check-permission-reback', data)
+            // console.log('check-permission', data)
             if (data.success) {
               me.checkButtonText = data.params.permission === 'switchOff' ? 'on' : 'off'
               me.checkAction = data.params.result === true ? 1 : 0
@@ -164,13 +152,30 @@ export default {
             } else {
               me.status = 3
             }
+            let checkParams = {
+              user: me.$store.state.currentUser.gapper_id,
+              equipment: me.equipment.uuid,
+              source_name: me.equipment.source_name,
+              user_info: {
+                gapper_id: me.$store.state.currentUser.gapper_id,
+                username: me.$store.state.currentUser.name,
+                email: me.$store.state.currentUser.email
+              },
+              uuid: `wechatUUID_{{me.equipment.uuid}}`
+            }
+
+            me.socket.emit('yiqikong-check-permission', {
+              code: me.code,
+              form: JSON.stringify(checkParams)
+            })
           })
           .emit('auth', { form: JSON.stringify(validationMessage) })
       }
       me.socket.connect()
         .on('connect', handlerListen)
         .on('connect_error', msg => {
-          console.log('connect failed!')
+  // 需要走代理服务
+          console.log('wxyconnect failed!')
           me.socket.disconnect()
           me.socket = io.connect(me.proxyUrl, {
             path: '/socket.io',
@@ -178,52 +183,59 @@ export default {
             forceNew: true,
             timeout: 10000
           })
+          validationMessage.source_name = me.equipment.source_name
+          validationMessage.socket = {}
           me.socket.connect().on('connect', handlerListen)
           .on('connect_error', msg => {
             console.log('connect failed')
           })
         })
     },
-
+  // 用户是否关注设备
     getFollowStatus () {
-      var me = this
-      me.$http.post('/api/getEquipmentFollowStatus', {
-        uid: me.$store.state.currentUser.gapper_id,
-        uuid: me.equipment.uuid
+      var vm = this
+      this.$store.dispatch('FETCH_STATUS', {
+        uid: vm.$store.state.currentUser.result.gapper_id,
+        uuid: vm.equipment.uuid
       }).then(res => {
-        me.isfollow = res.body.id
+        vm.isfollow = res.id
       }, res => {
-        me.equipment.follow = 0
+        vm.equipment.follow = 0
       })
     },
-
+    // 跳转到预约界面
     reservClick () {
+      console.log('hello')
       this.$router.push({name: 'equipment-reserv', params: { id: this.equipment.uuid }})
+    },
+    getInfo (data) {
+      this.equipment = Object.assign(this.equipment, data)
+      if (!data.icon) {
+        this.equipment.icon = '/public/img/equipment/default.png'
+      }
+      this.getFollowStatus()
     }
   },
 
   created () {
-    let toast = Toast({
-      message: '请等待',
-      iconClass: 'fa fa-spin fa-spinner fa-2x'
-    })
-    let me = this
-    me.$http.post('/api/getEquipment', {
-      id: me.$router.currentRoute.params.id
-    }).then(res => {
-      me.equipment = res.body
-      toast.close()
-      me.socket = io.connect(me.equipment.socket_url, {
-        path: '/socket.io',
+    let vm = this
+    this.$store.dispatch('FETCH_EQUIPMENT', vm.$router.currentRoute.params.id).then(equipment => {
+      console.log(equipment)
+      this.equipment = Object.assign(vm.equipment, equipment)
+      if (!equipment.icon) {
+        this.equipment.icon = '/public/img/equipment/default.png'
+      }
+
+      vm.socket = io.connect(vm.equipment.socket_url, {
+        path: '/scoket.io',
         autoConnect: false,
         forceNew: true,
         timeout: 10000
       })
-      me.getUseStatus()
-      me.getFollowStatus()
+      vm.getUseStatus()
+      vm.getFollowStatus()
     }, res => {
-      me.equipment = {}
-      toast.close()
+      vm.equipment = {}
     })
   }
 }

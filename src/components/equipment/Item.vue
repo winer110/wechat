@@ -1,25 +1,25 @@
 <template>
-  <li class="equipment-item" @click.stop="goToEqInfo(item.uuid)">
+  <li class="equipment-item" @click.stop="goToEqInfo(item.id)">
     <div class="media">
       <div class="media-left">
-        <img :src="item.icon ? item.icon : src" height="86px" width="86px" class="img-rounded">
+        <img :src="equipment.icon" height="86px" width="86px" class="img-rounded">
       </div>
       <div class="media-body">
         <div class="title">
           {{ item.name }}
           <div class="tags">
-            <span v-show="item.can_reserv" class="label label-primary">预约</span>&#160;
-            <span v-show="item.can_sample" class="label label-primary">送样</span>
+            <span v-show="equipment.can_reserv" class="label label-primary">预约</span>&#160;
+            <span v-show="equipment.can_sample" class="label label-primary">送样</span>
           </div>
         </div>
         </p>
         <p>
           <i class="fa fa-user fa-fw"></i>
-          {{  item.contact_name }}
+          {{  equipment.contact_name }}
         </p>
         <p>
           <i class="fa fa-map-marker fa-fw"></i>
-          {{ item.location }}
+          {{ equipment.location }}
         </p>
       </div>
     </div>
@@ -32,14 +32,34 @@ export default {
 
   data () {
     return {
-      src: '/public/img/equipment/default.png'
+      equipment: {
+        icon: '/public/img/equipment/default.png',
+        can_reserv: false,
+        can_sample: false,
+        name: '',
+        location: '',
+        contact_name: ''
+      }
     }
   },
 
   methods: {
-    goToEqInfo (id = 0) {
-      this.$router.push({name: 'equipment-info', params: { id: id }})
+    goToEqInfo () {
+      this.$router.push({name: 'equipment-info', params: { id: this.item.id }})
+    },
+    getInfo (data) {
+      this.equipment = Object.assign(this.equipment, data)
+      if (!data.icon) {
+        this.equipment.icon = '/public/img/equipment/default.png'
+      }
     }
+  },
+
+  mounted () {
+    this.$store.dispatch('FETCH_EQUIPMENT_QUEUE', {
+      id: this.item.id,
+      item: this
+    })
   }
 }
 </script>

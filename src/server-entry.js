@@ -17,7 +17,7 @@ export default context => {
 
   // no matched routes
   if (!matchedComponents.length) {
-    return Promise.reject({ code: '404' })
+    return ({ code: '404' })
   }
 
   // Call preFetch hooks on components matched by the route.
