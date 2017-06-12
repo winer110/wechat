@@ -8,22 +8,22 @@
       <mt-cell title="已有预约">
         <img slot="icon"  src="/public/img/mine/reserv.png" style="margin-right: 5px;" />
       </mt-cell>
-      <template v-if="reserves.length > 0">
-        <mt-cell title="我的送样"></mt-cell>
-      </template>
+    <template v-if="reserves.length > 0">
+      <mt-cell title="仪器使用预约" v-show="reserves.length" v-for="reserve in reserves" :key="reserve.id">
+        {{ reserve.start_time | formatDate}} ~
+        {{ reserve.end_time | formatDate}}
+      </mt-cell>
+    </template>
       <template v-if="reserves.length == 0">
         <mt-cell v-show="loading == true">
           <mt-spinner :type="1" color="#5F71D3" slot="title"></mt-spinner>
         </mt-cell>
         <mt-cell v-show="loading == false" title="暂无人预约">
-          <ul v-show="reserves.length" v-for="reserve in reserves">
-          <li>{{ reserve.start_time }}</li>
-          </ul>
         </mt-cell>
       </template>
     </div>
-    <div style="padding-top: 10px;">
-      <mt-field label="姓名" placeholder="请输入您的姓名"></mt-field>
+    <div style="padding-top: 10px;" ref="input">
+      <mt-field label="姓名" placeholder="请输入您的姓名" :value="name"></mt-field>
       <mt-cell title="起始时间" class="date-box">
         <span :class="{'gray': startPlaceholder}" class="mint-field-core datePicker" @click="startFiledClick">{{ startTime }}</span>
       </mt-cell>
@@ -50,7 +50,9 @@
 
 <script>
 import Calendar from '../../components/Calendar.vue'
-import { Cell, Header, Button, Spinner, Field, DatetimePicker } from 'mint-ui'
+import { Cell, Header, Button, Spinner, Field, DatetimePicker, MessageBox } from 'mint-ui'
+import {formatDate} from '../../../public/js/date'
+
 export default {
   name: 'equipment-reserv',
 
@@ -61,7 +63,8 @@ export default {
     'mt-header': Header,
     'mt-button': Button,
     'mt-datetime-picker': DatetimePicker,
-    'G-calendar': Calendar
+    'G-calendar': Calendar,
+    MessageBox
   },
 
   data () {
@@ -72,7 +75,8 @@ export default {
       startTime: '00:00',
       startPlaceholder: true,
       endTime: '23:59',
-      endPlaceholder: true
+      endPlaceholder: true,
+      name: this.$store.state.user.user.name
     }
   },
   // 服务端渲染时候该方法不加载
@@ -109,33 +113,41 @@ export default {
     },
 
     getChooseDayReserves (d) {
-      let date = new Date(d)
+      this.loading = true
+      let date = d ? new Date(d) : new Date()
       date.setHours(0)
       date.setMinutes(0)
       date.setSeconds(0)
-      console.log('getTime', date.getTime())
 
       this.$store.dispatch('FECTH_RESERVES', {
-        uuid: this.$router.currentRoute.params.id,
+        uuid: this.$store.state.items[this.$router.currentRoute.params.id].uuid,
         startTime: date.getTime() / 1000,
         endTime: date.getTime() / 1000 + 24 * 3600
       }).then(res => {
-        console.log(res)
+        this.loading = false
+        this.reserves = []
+        for (let i in res) {
+          this.reserves.push(res[i])
+        }
       })
-      // this.$http.post('/api/searchReserves', {
-      //   uuid: this.$router.currentRoute.params.id,
-      //   startTime: date.getTime() / 1000,
-      //   endTime: date.getTime() / 1000 + 24 * 3600
-      // }).then(res => {
-      //   console.log(res)
-      //   this.loading = false
-      // }, res => {
-      //   this.loading = false
-      // })
     },
     // 点击确认发送预约信息
     postReservInfo () {
-      console.log('post')
+      // let reservName = document.querySelector('input[type=text]').value
+      // let reservRemark = document.querySelector('textarea').value
+      // let message = `名字：${reservName}<br/>起始时间：${this.startTime}<br/>结束时间：${this.endTime}<br/>备注：${reservRemark}`
+      // MessageBox.confirm(message).then(action => {
+      //   console.log('hello')
+      // })
+
+      // let socketServer = io.connect
+    }
+  },
+
+  filters: {
+    formatDate (time) {
+      let date = new Date(time * 1000)
+      return formatDate(date, 'hh:mm')
     }
   },
 

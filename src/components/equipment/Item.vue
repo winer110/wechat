@@ -1,29 +1,17 @@
-<template>
-  <li class="equipment-item" @click.stop="goToEqInfo(item.id)">
-    <div class="media">
-      <div class="media-left">
-        <img :src="equipment.icon" height="86px" width="86px" class="img-rounded">
-      </div>
-      <div class="media-body">
-        <div class="title">
-          {{ item.name }}
-          <div class="tags">
-            <span v-show="equipment.can_reserv" class="label label-primary">预约</span>&#160;
-            <span v-show="equipment.can_sample" class="label label-primary">送样</span>
-          </div>
-        </div>
-        </p>
-        <p>
-          <i class="fa fa-user fa-fw"></i>
-          {{  equipment.contact_name }}
-        </p>
-        <p>
-          <i class="fa fa-map-marker fa-fw"></i>
-          {{ equipment.location }}
-        </p>
-      </div>
-    </div>
-  </li>
+<template lang="pug">
+  li.equipment-item(@click.stop='goToEqInfo(item.id)')
+    div.media
+      div.media-left
+        img.img-rounded(:src='equipment.icon || icon' height='86px' width='86px')
+      div.media-body
+        div.title {{ name }}
+          div.tags
+            span.label.label-primary(v-show='equipment.can_reserv' style='margin-right:5px') 预约
+            span.label.label-primary(v-show='equipment.can_sample') 送样
+          p
+            i.fa.fa-user.fa-fw/ {{ equipment.contact_name }}
+          p
+            i.fa.fa-map-marker.fa-fw/ {{ equipment.location }}
 </template>
 
 <script>
@@ -32,7 +20,7 @@ export default {
 
   data () {
     return {
-      equipment: {
+      default: {
         icon: '/public/img/equipment/default.png',
         can_reserv: false,
         can_sample: false,
@@ -46,20 +34,24 @@ export default {
   methods: {
     goToEqInfo () {
       this.$router.push({name: 'equipment-info', params: { id: this.item.id }})
-    },
-    getInfo (data) {
-      this.equipment = Object.assign(this.equipment, data)
-      if (!data.icon) {
-        this.equipment.icon = '/public/img/equipment/default.png'
-      }
     }
   },
 
+  beforeMount () {
+    this.$store.dispatch('FETCH_EQUIPMENT', this.item.id)
+  },
+  computed: {
+    equipment: function () {
+      return this.$store.state.equipment.equipment[this.id] || this.default
+    },
+    name: function () {
+      return this.equipment.name || this.item.name
+    },
+    id: function () {
+      return this.$store.state.equipment.uuidToID.hasOwnProperty(this.item.id) ? this.$store.state.equipment.uuidToID[this.item.id] : this.item.id
+    }
+  },
   mounted () {
-    this.$store.dispatch('FETCH_EQUIPMENT_QUEUE', {
-      id: this.item.id,
-      item: this
-    })
   }
 }
 </script>

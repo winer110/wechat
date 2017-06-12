@@ -7,10 +7,9 @@ module.exports = class User {
   }
 
   fetch (...args) {
-    let params = {
-      id: args[0]
-    }
-    return this.rpcPost(config.user.url, config.user.get, params)
+    return this.rpcPost(config.user.url, config.user.get, args).then(res => {
+      return res.data
+    })
   }
   get (...args) {
     this.rpcPost('/api/decryptUserInfo').then(res => {
@@ -30,5 +29,15 @@ module.exports = class User {
     //     res.send({success: 0, data: '验证错误'})
     //   }
     // })
+  }
+  follow (...args) {
+    return this.rpcPost(config.follow.url, config.follow.search, args).then(res => {
+      return res.data.result
+    })
+  }
+  equipments (...args) {
+    return this.rpcPost(config.follow.url, config.follow.getlist, args).then(res => {
+      return res.data.result
+    })
   }
 }

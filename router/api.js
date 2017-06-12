@@ -117,6 +117,7 @@ router
   })
   // 进行socket.io auth之后的解密操作
   .post('/decryptUserInfo', (req, res) => {
+    console.log(req.session)
     let params = req.body || {}
     let user = req.session.user
     let code = params.code

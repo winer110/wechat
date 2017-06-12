@@ -1,4 +1,29 @@
 <template>
+<!--  div.eq-info-root
+    mt-header(title='仪器详情' fixed)
+    i.fa.fa-chevron-left.fa-fw(slot='left' @click='goBack')
+    div.eq-info-container
+      div.media
+        div.media-left
+          img.img-rounded(:src="equipment.icon ? equipment.icon : src" height="64px" width="64px")
+        div.media-body
+          div.title {{ equipment.name }}
+            div.status(v-show="status === false")
+              mt-spinner(:type='1' color='#5f71d3')
+            div.status(v-show='status==1')
+              mt-badge(size='small' color='#cccccc') 未使用
+            div.status(v-show='status==2')
+              mt-badge(type='success' size='small') 使用中
+            div.status(v-show='status==2')
+              mt-badge(type='error' size='small') 获取状态失败
+          div.content
+            div(v-show='isfollow>0')
+              mt-badge(size='small' color='#5f71d3') 已关注
+            div(v-show='isfollow<=0')
+              mt-badge(size='small' color='#CCCCCC') 未关注
+      div
+        mt-cell(title='所属院校' :value='')
+-->
   <div class="eq-info-root">
     <mt-header fixed title="仪器详情">
       <i class="fa fa-chevron-left fa-fw" slot="left" @click="goBack"></i>
@@ -113,22 +138,22 @@ export default {
     getUseStatus () {
       let me = this
       let validationMessage = {
-        id: me.$store.state.currentUser.id,
-        email: me.$store.state.currentUser.email
+        id: me.$store.state.user.user.id,
+        email: me.$store.state.user.user.email
       }
       let handlerListen = msg => {
         // 不走代理服务
         me.socket
           .on('auth-reback', data => {
+            console.log('auth', data)
             if (data.authed !== true) return false
-
             me.$http.post('/api/decryptUserInfo', {code: data.code}).then(res => {
               if (res.data.success) {
                 me.code = res.data.code
                 let statusParams = {
                   equipment: me.equipment.uuid,
                   source_name: me.equipment.source_name,
-                  uuid: `wechatUUID_{{me.equipment.uuid}}`
+                  uuid: `wechatUUID_${me.equipment.uuid}`
                 }
                 me.socket.emit('yiqikong-get-status', {
                   code: me.code,
@@ -153,15 +178,15 @@ export default {
               me.status = 3
             }
             let checkParams = {
-              user: me.$store.state.currentUser.gapper_id,
+              user: me.$store.state.user.user.gapper_id,
               equipment: me.equipment.uuid,
               source_name: me.equipment.source_name,
               user_info: {
-                gapper_id: me.$store.state.currentUser.gapper_id,
-                username: me.$store.state.currentUser.name,
-                email: me.$store.state.currentUser.email
+                gapper_id: me.$store.state.user.user.gapper_id,
+                username: me.$store.state.user.user.name,
+                email: me.$store.state.user.user.email
               },
-              uuid: `wechatUUID_{{me.equipment.uuid}}`
+              uuid: `wechatUUID_${me.equipment.uuid}`
             }
 
             me.socket.emit('yiqikong-check-permission', {
@@ -174,7 +199,7 @@ export default {
       me.socket.connect()
         .on('connect', handlerListen)
         .on('connect_error', msg => {
-  // 需要走代理服务
+          // 需要走代理服务
           console.log('wxyconnect failed!')
           me.socket.disconnect()
           me.socket = io.connect(me.proxyUrl, {
@@ -195,7 +220,7 @@ export default {
     getFollowStatus () {
       var vm = this
       this.$store.dispatch('FETCH_STATUS', {
-        uid: vm.$store.state.currentUser.result.gapper_id,
+        uid: vm.$store.state.currentUser.gapper_id,
         uuid: vm.equipment.uuid
       }).then(res => {
         vm.isfollow = res.id
@@ -205,38 +230,49 @@ export default {
     },
     // 跳转到预约界面
     reservClick () {
-      console.log('hello')
-      this.$router.push({name: 'equipment-reserv', params: { id: this.equipment.uuid }})
+      this.$router.push({name: 'equipment-reserv', params: { id: this.equipment.id }})
     },
-    getInfo (data) {
-      this.equipment = Object.assign(this.equipment, data)
-      if (!data.icon) {
-        this.equipment.icon = '/public/img/equipment/default.png'
-      }
-      this.getFollowStatus()
-    }
-  },
-
-  created () {
-    let vm = this
-    this.$store.dispatch('FETCH_EQUIPMENT', vm.$router.currentRoute.params.id).then(equipment => {
-      console.log(equipment)
-      this.equipment = Object.assign(vm.equipment, equipment)
-      if (!equipment.icon) {
-        this.equipment.icon = '/public/img/equipment/default.png'
-      }
-
-      vm.socket = io.connect(vm.equipment.socket_url, {
-        path: '/scoket.io',
+    getInfo: function () {
+      this.equipment = this.$store.state.equipment.equipment[this.$router.currentRoute.params.id]
+      this.socket = io.connect('http:/equip.xjtu.edu.cn/', {
+        path: '/socket.io',
         autoConnect: false,
         forceNew: true,
         timeout: 10000
       })
-      vm.getUseStatus()
-      vm.getFollowStatus()
-    }, res => {
-      vm.equipment = {}
-    })
+      this.getUseStatus()
+    }
+  },
+
+  created () {
+    if (this.check) {
+      this.getInfo()
+    }
+    // if(this.equipment)
+    // let vm = this
+    // this.$store.dispatch('FETCH_EQUIPMENT', vm.$router.currentRoute.params.id)
+    // .then(equipment => {
+    //   // vm.socket = io.connect(vm.equipment.socket_url, {
+    //   //   path: '/scoket.io',
+    //   //   autoConnect: false,
+    //   //   forceNew: true,
+    //   //   timeout: 10000
+    //   // })
+    //   // vm.getUseStatus()
+    //   // vm.getFollowStatus()
+    // }, res => {
+    //   vm.equipment = {}
+    // })
+  },
+  computed: {
+    check: function () {
+      return this.$store.state.equipment.equipment.hasOwnProperty(this.$router.currentRoute.params.id)
+    }
+  },
+  watch: {
+    check: function () {
+      this.getInfo()
+    }
   }
 }
 </script>

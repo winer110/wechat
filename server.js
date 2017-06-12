@@ -115,18 +115,19 @@ app.get('/creatWechatMenu', (req, res) => {
   })
 })
 
-app.use('/wechat/', (req, res, next) => {
-  if (req.session.user) {
-    next()
-  } else {
-    // 拼装数据进行远程到GateWay进行微信OpenId的信息验证获取
-    // TODO 如果是线上程序需要跳转到Weixin-17kong-Gateway进行验证
-    res.redirect('/wechatAuth')
-  }
-})
+// app.use('/wechat/', (req, res, next) => {
+//   console.log('session', req.session.user)
+//   if (req.session.user) {
+//     next()
+//   } else {
+//     // 拼装数据进行远程到GateWay进行微信OpenId的信息验证获取
+//     // TODO 如果是线上程序需要跳转到Weixin-17kong-Gateway进行验证
+//     res.redirect('/wechatAuth')
+//   }
+// })
 
-let wechatAuth = require('./lib/wechatAuth')
-app.get('/wechatAuth', wechatAuth.auth(require('./config/wechat')))
+// let wechatAuth = require('./lib/wechatAuth')
+// app.get('/wechatAuth', wechatAuth.auth(require('./config/wechat')))
 
 /* 提供给Vue前端进行获取数据的接口信息, 通过后端Express的Router进行分发 */
 app.use('/api', apiRouter)

@@ -16,7 +16,6 @@ module.exports = class Reserve {
     //   end_time_condition: '<='
     // }
     let params = {
-      'id': 1,
       'criteria': {
         equipment: args[0].uuid,
         equipment_condition: '=',
@@ -26,7 +25,19 @@ module.exports = class Reserve {
         end_time_condition: '<='
       }
     }
-    console.log(params)
-    return this.rpcPost(config.reserve.url, 'YiQiKong/Reserve/GetReservation', params)
+    return this.rpcPost(config.reserve.url, 'YiQiKong/Reserve/SearchReservations', params).then(res => {
+      if (res.result) {
+        let param = {
+          token: res.result.token,
+          start: 0,
+          num: res.result.total
+        }
+        return this.rpcPost(config.reserve.url, config.reserve.getlist, param).then(res => {
+          return res.result
+        })
+      } else {
+        return false
+      }
+    })
   }
 }

@@ -1,15 +1,11 @@
-<template>
-  <div>
-    <mt-header :scope="scope" @changeScope="changeScope" :keywords="keywords" @searchCommit="searchCommit"></mt-header>
-    <div class="more-container">
-      <mt-loadmore :bottom-method="loadBottom" :bottom-all-loaded="allLoaded" ref="loadmore">
-        <ul class="equipment-container">
-          <eq-item v-for="item in displayItems" :key="item.id" :item="item"></eq-item>
-        </ul>
-      </mt-loadmore>
-    </div>
-    <mt-footer :value="activeTab" @switchTab="switchTab"></mt-footer>
-  </div>
+<template lang="pug">
+  div
+    mt-header(:scope="scope" @changeScope="changeScope" :keywords="keywords" @searchCommit="searchCommit")
+    div.more-container
+      mt-loadmore(:bottom-method="loadBottom" :bottom-all-loaded="allLoaded" ref="loadmore")
+        ul.equipment-container
+          eq-item(v-for="item in displayItems" :key="item.id" :item="item")
+    mt-footer(:value="activeTab" @switchTab="switchTab")
 </template>
 
 <script>
@@ -83,29 +79,51 @@ export default {
     // 加载仪器数据
     loadBottom (fn = () => {}) {
       let vm = this
-      this.$store.dispatch('FETCH_EQUIPMENTS', {
-        start: vm.start,
-        step: vm.step
-      }).then((res) => {
-        if (res.result) {
-          for (let i in res.result) {
-            if (res.result[i]) {
-              vm.displayItems.push({
-                id: i,
-                name: res.result[i]
-              })
-            }
-          }
-          vm.start = vm.start + vm.step
-        } else {
-          vm.allLoaded = true
-        }
-        // vm.$refs.loadmore.onBottomLoaded()
-        fn()
-      }, res => {
-        // vm.$refs.loadmore.onBottomLoaded()
-        fn()
+      Promise.resolve()
+      .then(() => {
+        return vm.$store.dispatch('EQ_TOKEN', vm.keywords)
       })
+      .then(res => {
+        return this.$store.dispatch('EQ_LIST', {
+          token: res.token,
+          start: vm.start,
+          step: vm.step
+        })
+      })
+      .then(res => {
+        if (res) {
+          for (let id in res) {
+            vm.displayItems.push({ id, name: res[id] })
+          }
+          vm.start += vm.step
+        }
+        vm.$refs.loadmore.onBottomLoaded()
+      })
+      // let vm = this
+      // this.$store.dispatch('FETCH_EQUIPMENTS', {
+      //   start: vm.start,
+      //   step: vm.step
+      // }).then((res) => {
+      //   console.log(res)
+      //   if (res.result) {
+      //     for (let i in res.result) {
+      //       if (res.result[i]) {
+      //         vm.displayItems.push({
+      //           id: i,
+      //           name: res.result[i]
+      //         })
+      //       }
+      //     }
+      //     vm.start = vm.start + vm.step
+      //   } else {
+      //     vm.allLoaded = true
+      //   }
+      //   vm.$refs.loadmore.onBottomLoaded()
+      //   fn()
+      // }, res => {
+      //   vm.$refs.loadmore.onBottomLoaded()
+      //   fn()
+      // })
     }
   },
   created () {
