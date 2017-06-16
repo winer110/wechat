@@ -83,7 +83,7 @@
           </mt-button>
         </div>
         <div class="action_button" v-if="equipment.can_sample" :class="{ 'normal' : equipment.can_reserv, 'spec' : !equipment.can_reserv}">
-          <mt-button type="primary" size="large">送样</mt-button>
+          <mt-button type="primary" size="large" @click="sampleClick">送样</mt-button>
         </div>
         <div class="action_button" v-if="equipment.can_reserv" :class="{ 'normal' : equipment.can_sample, 'spec' : !equipment.can_sample}">
           <mt-button type="primary" size="large" @click="reservClick">预约</mt-button>
@@ -145,7 +145,6 @@ export default {
         // 不走代理服务
         me.socket
           .on('auth-reback', data => {
-            console.log('auth', data)
             if (data.authed !== true) return false
             me.$http.post('/api/decryptUserInfo', {code: data.code}).then(res => {
               if (res.data.success) {
@@ -200,6 +199,7 @@ export default {
         .on('connect', handlerListen)
         .on('connect_error', msg => {
           // 需要走代理服务
+          console.log(msg)
           console.log('wxyconnect failed!')
           me.socket.disconnect()
           me.socket = io.connect(me.proxyUrl, {
@@ -230,11 +230,15 @@ export default {
     },
     // 跳转到预约界面
     reservClick () {
-      this.$router.push({name: 'equipment-reserv', params: { id: this.equipment.id }})
+      this.$router.push({name: 'equipment-reserv', params: { id: this.equipment.uuid }})
+    },
+    sampleClick () {
+      this.$router.push({name: 'equipment-sample', params: { id: this.equipment.uuid }})
     },
     getInfo: function () {
-      this.equipment = this.$store.state.equipment.equipment[this.$router.currentRoute.params.id]
-      this.socket = io.connect('http:/equip.xjtu.edu.cn/', {
+      let id = this.$store.state.equipment.uuidToID[this.$router.currentRoute.params.id]
+      this.equipment = this.$store.state.equipment.equipment[id]
+      this.socket = io.connect('http://equip.xjtu.edu.cn/', {
         path: '/socket.io',
         autoConnect: false,
         forceNew: true,
@@ -266,13 +270,16 @@ export default {
   },
   computed: {
     check: function () {
-      return this.$store.state.equipment.equipment.hasOwnProperty(this.$router.currentRoute.params.id)
+      return this.$store.state.equipment.uuidToID.hasOwnProperty(this.$router.currentRoute.params.id)
     }
   },
   watch: {
     check: function () {
       this.getInfo()
     }
+  },
+  destroyed () {
+    this.socket.disconnect()
   }
 }
 </script>

@@ -3,7 +3,7 @@
     <mt-header fixed title="申请预约">
       <i class="fa fa-chevron-left fa-fw" slot="left" @click="goBack"></i>
     </mt-header>
-    <G-calendar @dateChange="dateChange"></G-calendar>
+    <G-calendar :dater='dater' @dateChange="dateChange" @daterChange='daterChange'></G-calendar>
     <div style="padding-top: 10px;">
       <mt-cell title="已有预约">
         <img slot="icon"  src="/public/img/mine/reserv.png" style="margin-right: 5px;" />
@@ -50,8 +50,9 @@
 
 <script>
 import Calendar from '../../components/Calendar.vue'
-import { Cell, Header, Button, Spinner, Field, DatetimePicker, MessageBox } from 'mint-ui'
-import {formatDate} from '../../../public/js/date'
+import { Cell, Header, Button, Spinner, Field, DatetimePicker, MessageBox, Indicator } from 'mint-ui'
+import { formatDate } from '../../../public/js/date'
+import io from 'socket.io-client'
 
 export default {
   name: 'equipment-reserv',
@@ -64,7 +65,8 @@ export default {
     'mt-button': Button,
     'mt-datetime-picker': DatetimePicker,
     'G-calendar': Calendar,
-    MessageBox
+    MessageBox,
+    Indicator
   },
 
   data () {
@@ -76,11 +78,14 @@ export default {
       startPlaceholder: true,
       endTime: '23:59',
       endPlaceholder: true,
-      name: this.$store.state.user.user.name
+      name: this.$store.state.user.user.name,
+      code: '',
+      dater: new Date()
     }
   },
   // 服务端渲染时候该方法不加载
   beforeMount () {
+    this.$store.dispatch('FETCH_COUNTINFO', this.$store.state.user.user.gapper_id)
   },
 
   methods: {
@@ -100,8 +105,11 @@ export default {
 
     dateChange (date) {
       this.getChooseDayReserves(date)
+      this.dater = date
     },
-
+    daterChange (date) {
+      this.dater = date
+    },
     ConfirmTime (val) {
       if (this.currentChooseTime === 'start') {
         this.startPlaceholder = false
@@ -118,9 +126,8 @@ export default {
       date.setHours(0)
       date.setMinutes(0)
       date.setSeconds(0)
-
-      this.$store.dispatch('FECTH_RESERVES', {
-        uuid: this.$store.state.items[this.$router.currentRoute.params.id].uuid,
+      this.$store.dispatch('FETCH_RESERVE', {
+        uuid: this.$router.currentRoute.params.id,
         startTime: date.getTime() / 1000,
         endTime: date.getTime() / 1000 + 24 * 3600
       }).then(res => {
@@ -133,14 +140,78 @@ export default {
     },
     // 点击确认发送预约信息
     postReservInfo () {
+      // Indicator.open({
+      //   text: '预约中',
+      //   spinnerType: 'fading-circle'
+      // })
       // let reservName = document.querySelector('input[type=text]').value
       // let reservRemark = document.querySelector('textarea').value
       // let message = `名字：${reservName}<br/>起始时间：${this.startTime}<br/>结束时间：${this.endTime}<br/>备注：${reservRemark}`
       // MessageBox.confirm(message).then(action => {
       //   console.log('hello')
       // })
+      let vm = this
+      let id = this.$store.state.equipment.uuidToID[this.$router.currentRoute.params.id]
+      let equipment = this.$store.state.equipment.equipment[id]
 
-      // let socketServer = io.connect
+      let socketServer = io.connect('http://proxy.17kong.com/', {
+        path: '/socket.io',
+        authConnect: false,
+        forceNew: true,
+        timeout: 20000
+      })
+      let validationMessage = {
+        id: this.$store.state.user.user.id,
+        email: this.$store.state.user.user.email,
+        source_name: equipment.source_name,
+        socket: {}
+      }
+      socketServer
+      .on('connect', msg => {
+        socketServer
+        .emit('auth', { form: JSON.stringify(validationMessage) })
+      })
+      .on('auth-reback', data => {
+        if (data.authed !== true) return false
+        vm.$http.post('/api/decryptUserInfo', {code: data.code}).then(res => {
+          vm.code = res.data.code
+          let start = new Date(vm.dater + ' ' + vm.startTime)
+          let end = new Date(vm.dater + ' ' + vm.endTime)
+          var form = {
+            equipment: vm.$router.currentRoute.params.id,
+            dtstart: formatDate(start, 'yyyy/MM/dd hh:mm'),
+            dtend: formatDate(end, 'yyyy/MM/dd hh:mm'),
+            extra: {},
+            description: '',
+            user: vm.$store.state.user.user.gapper_id,
+            title: '仪器使用预约',
+            source_name: equipment.source_name,
+            user_info: {
+              gapper_id: vm.$store.state.user.user.gapper_id,
+              username: vm.$store.state.user.user.name,
+              email: vm.$store.state.user.user.email
+            },
+            balance: vm.$store.state.billing.info.balance,
+            tube: vm.$router.currentRoute.params.id,
+            uuid: `wechatUUID_${vm.$router.currentRoute.params.id}`,
+            socket: {
+              url: equipment.socket_url,
+              path: '/socket.io'
+            }
+          }
+          socketServer.emit('yiqikong-reserv', {
+            code: vm.code,
+            form: JSON.stringify(form)
+          })
+        }, res => {
+          console.log('decryptUserInfo-failed', res)
+        })
+      })
+      .on('yiqikong-reserv-reback', msg => {
+        console.log('预约返回值', msg)
+        socketServer.disconnect()
+      })
+      socketServer.connect()
     }
   },
 

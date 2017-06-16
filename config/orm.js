@@ -12,10 +12,12 @@ module.exports = {
     getlist: 'YiQiKong/Reserve/getReservations',
   },
   sample: {
-    url: 'http://sample.17kong.com/api'
+    url: 'http://sample.17kong.com/api',
+    get: 'YiQiKong/Billing/getAccountInfo'
   },
   billing: {
-    url: 'http://billing.17kong.com/api'
+    url: 'http://billing.17kong.com/api',
+    get: 'YiQiKong/Billing/getAccountInfo'
   },
   user: {
     url: 'http://user.17kong.com/api',

@@ -26,14 +26,14 @@ module.exports = class Reserve {
       }
     }
     return this.rpcPost(config.reserve.url, 'YiQiKong/Reserve/SearchReservations', params).then(res => {
-      if (res.result) {
+      if (res.data.result) {
         let param = {
-          token: res.result.token,
+          token: res.data.result.token,
           start: 0,
-          num: res.result.total
+          num: res.data.result.total
         }
         return this.rpcPost(config.reserve.url, config.reserve.getlist, param).then(res => {
-          return res.result
+          return res.data.result
         })
       } else {
         return false

@@ -33,7 +33,7 @@ export default {
 
   methods: {
     goToEqInfo () {
-      this.$router.push({name: 'equipment-info', params: { id: this.item.id }})
+      this.$router.push({name: 'equipment-info', params: { id: this.equipment.uuid }})
     }
   },
 

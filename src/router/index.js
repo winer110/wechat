@@ -9,12 +9,14 @@ import Home from '../views/Home.vue'
 import Follow from '../views/Follow.vue'
 import Info from '../views/equipment/Info.vue'
 import Reserv from '../views/equipment/Reserv.vue'
+import Sample from '../views/equipment/Sample.vue'
 
 export default new Router({
   mode: 'history',
   scrollBehavior: () => ({ y: 0 }),
   routes: [
     { path: '/wechat/equipment/reserv/:id', name: 'equipment-reserv', component: Reserv },
+    { path: '/wechat/equipment/sample/:id', name: 'equipment-sample', component: Sample },
     { path: '/wechat/equipment/:id', name: 'equipment-info', component: Info },
     { path: '/wechat/help', component: Help },
     { path: '/wechat/mine', component: Mine },

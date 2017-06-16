@@ -61,10 +61,10 @@ export default {
       currentMonth: 1,
       currentYear: 1970,
       currentWeek: 1,
-      currentDate: new Date(),
       days: []
     }
   },
+  props: ['dater'],
   // 服务端渲染时候该方法不加载
   beforeMount () {
   },
@@ -90,7 +90,7 @@ export default {
         d.setDate(d.getDate() + i)
         this.days.push(d)
       }
-      this.currentDate = date
+      this.$emit('daterChange', this.formatDate(date.getFullYear(), date.getMonth(), date.getDate()))
     },
 
     formatDate (year, month, day) {
@@ -108,22 +108,22 @@ export default {
     },
 
     preYear () {
-      let d = this.currentDate
+      let d = this.dater
       this.initData(this.formatDate(d.getFullYear() - 1, d.getMonth(), d.getDate()))
     },
 
     nextYear () {
-      let d = this.currentDate
+      let d = this.dater
       this.initData(this.formatDate(d.getFullYear() + 1, d.getMonth(), d.getDate()))
     },
 
     preMonth () {
-      let d = this.currentDate
+      let d = this.dater
       this.initData(this.formatDate(d.getFullYear(), d.getMonth() - 1, d.getDate()))
     },
 
     nextMonth () {
-      let d = this.currentDate
+      let d = this.dater
       this.initData(this.formatDate(d.getFullYear(), d.getMonth() + 1, d.getDate()))
     },
 

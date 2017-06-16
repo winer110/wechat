@@ -67,14 +67,10 @@ export default {
         })
       })
       .then(res => {
-        console.log('res', res)
         for (let i in res) {
           res[i].id = res[i].source_uuid
           res[i].type = 1
           this.displayItems.push(res[i])
-          // this.$store.dispatch('FETCH_FOLLOW_EQUIPMENT', res[i].source_uuid).then(res => {
-          //   console.log(res)
-          // })
         }
       })
       // let me = this

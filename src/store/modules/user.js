@@ -8,7 +8,7 @@ const state = {
 }
 
 const actions = {
-  FETCH_USER: ({ commit }) => {
+  FETCH_USER: ({ state, commit }) => {
     let params = 'o_UpduMUIn7STnCe9vpZ8EfVqlIg'
     Object.keys(state.user).length > 0
       ? Promise.resolve(state.user)

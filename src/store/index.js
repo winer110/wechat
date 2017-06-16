@@ -3,6 +3,8 @@ import Vuex from 'vuex'
 import user from './modules/user'
 import equipment from './modules/equipment'
 import follow from './modules/follow'
+import reserve from './modules/reserve'
+import billing from './modules/billing'
 
 Vue.use(Vuex)
 
@@ -10,7 +12,9 @@ export default new Vuex.Store({
   modules: {
     user,
     equipment,
-    follow
+    follow,
+    reserve,
+    billing
   }
 })
 
