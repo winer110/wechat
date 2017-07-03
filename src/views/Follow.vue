@@ -67,6 +67,7 @@ export default {
         })
       })
       .then(res => {
+        console.log('callbokk', res)
         for (let i in res) {
           res[i].id = res[i].source_uuid
           res[i].type = 1
@@ -106,6 +107,7 @@ export default {
     }
   },
   created () {
+    console.log(this.$store.state)
     let toast = Toast({
       message: '请等待',
       iconClass: 'fa fa-spin fa-spinner fa-2x'
@@ -119,7 +121,7 @@ export default {
 }
 </script>
 
-<style lang="stylus">
+<style lang="stylus" scoped>
 .more-container
   position absolute
   padding 40px 0 56px

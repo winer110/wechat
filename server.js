@@ -65,8 +65,6 @@ const serve = (path, cache) => express.static(resolve(path), {
   maxAge: cache && isProd ? 60 * 60 * 24 * 30 : 0
 })
 
-
-
 app.use('/service-worker.js', serve('./dist/service-worker.js'))
 app.use('/dist', serve('./dist'))
 app.use('/public', serve('./public'))
@@ -115,20 +113,18 @@ app.get('/creatWechatMenu', (req, res) => {
   })
 })
 
-app.use('/wechat/', (req, res, next) => {
-  console.log('session', req.session.user)
-  if (req.session.user) {
-    next()
-  } else {
-    // 拼装数据进行远程到GateWay进行微信OpenId的信息验证获取
-    // TODO 如果是线上程序需要跳转到Weixin-17kong-Gateway进行验证
+app.use('/wechat', (req, res, next) => {
+  console.log('hahaha')
+  console.log(req.session)
+  if (!req.session.auth) {
     res.redirect('/wechatAuth')
   }
+  next()
 })
 
 let wechatAuth = require('./lib/wechatAuth')
-app.get('/wechatAuth', wechatAuth.auth(require('./config/wechat')))
-
+app.get('/wechatAuth', wechatAuth.token(require('./config/wechat')))
+app.get('/wechat/callback', wechatAuth.entrance(require('./config/wechat')))
 /* 提供给Vue前端进行获取数据的接口信息, 通过后端Express的Router进行分发 */
 app.use('/api', apiRouter)
 
@@ -140,7 +136,12 @@ app.get('*', (req, res) => {
 
   res.setHeader("Content-Type", "text/html");
   var s = Date.now()
-  const context = { url: req.url, currentUser: req.session.user }
+  const context = {
+    url: req.url,
+    user: req.session.user,
+    openid: req.session.openid,
+    unionid: req.session.unionid
+  }
   const renderStream = renderer.renderToStream(context)
 
   renderStream.once('data', () => {

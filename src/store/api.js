@@ -17,6 +17,10 @@ module.exports = class Api {
     })
   }
 
+  encall (method, params) {
+    return this.object[method](params)
+  }
+
   token (...args) {
     return this.object.token(...args)
   }
@@ -29,6 +33,17 @@ module.exports = class Api {
     return Promise.resolve(this.object.get(...args))
   }
 
+  add (...args) {
+    return Promise.resolve(this.object.add(...args))
+  }
+
+  patch (...args) {
+    return Promise.resolve(this.object.patch(...args))
+  }
+
+  delete (...args) {
+    return Promise.resolve(this.object.delete(...args))
+  }
   status (...args) {
     return this.object.status(...args)
   }

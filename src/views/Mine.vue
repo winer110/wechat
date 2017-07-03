@@ -47,7 +47,7 @@ export default {
     return {
       activeTab: 'mine',
       src: '/public/img/mine/me.png',
-      currentUser: this.$store.state.currentUser
+      currentUser: this.$store.state.user.user
     }
   },
   // 服务端渲染时候该方法不加载

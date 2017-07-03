@@ -50,7 +50,7 @@
 
 <script>
 import Calendar from '../../components/Calendar.vue'
-import { Cell, Header, Button, Spinner, Field, DatetimePicker, MessageBox, Indicator } from 'mint-ui'
+import { Cell, Header, Button, Spinner, Field, DatetimePicker, MessageBox, Indicator, Toast } from 'mint-ui'
 import { formatDate } from '../../../public/js/date'
 import io from 'socket.io-client'
 
@@ -66,7 +66,8 @@ export default {
     'mt-datetime-picker': DatetimePicker,
     'G-calendar': Calendar,
     MessageBox,
-    Indicator
+    Indicator,
+    Toast
   },
 
   data () {
@@ -140,16 +141,10 @@ export default {
     },
     // 点击确认发送预约信息
     postReservInfo () {
-      // Indicator.open({
-      //   text: '预约中',
-      //   spinnerType: 'fading-circle'
-      // })
-      // let reservName = document.querySelector('input[type=text]').value
-      // let reservRemark = document.querySelector('textarea').value
-      // let message = `名字：${reservName}<br/>起始时间：${this.startTime}<br/>结束时间：${this.endTime}<br/>备注：${reservRemark}`
-      // MessageBox.confirm(message).then(action => {
-      //   console.log('hello')
-      // })
+      Indicator.open({
+        text: '预约中',
+        spinnerType: 'fading-circle'
+      })
       let vm = this
       let id = this.$store.state.equipment.uuidToID[this.$router.currentRoute.params.id]
       let equipment = this.$store.state.equipment.equipment[id]
@@ -207,8 +202,19 @@ export default {
           console.log('decryptUserInfo-failed', res)
         })
       })
-      .on('yiqikong-reserv-reback', msg => {
-        console.log('预约返回值', msg)
+      .on('yiqikong-reserv-reback', data => {
+        if (data.success === 1) {
+          this.$store.dispatch('RESERVE_SERVER', data.params.params).then(res => {
+            if (res) {
+              Toast('预约成功')
+            } else {
+              Toast(data.error_msg)
+            }
+          })
+        } else {
+          Toast(data.error_msg)
+        }
+        Indicator.close()
         socketServer.disconnect()
       })
       socketServer.connect()
@@ -227,7 +233,7 @@ export default {
   }
 }
 </script>
-<style lang="stylus">
+<style lang="stylus" scoped>
 .eq-info-reserv-container
   background-color #EEEEEE
   a.date-box

@@ -12,7 +12,9 @@ export default context => {
 
   // set router's location
   router.push(context.url)
-  store.state.user.user = context.currentUser
+  store.state.user.user = context.user
+  store.state.openid = context.openid
+  store.state.unionid = context.unionid
   const matchedComponents = router.getMatchedComponents()
 
   // no matched routes

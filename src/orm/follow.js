@@ -21,4 +21,19 @@ module.exports = class Equipments {
       return res.data.result
     })
   }
+  add (...args) {
+    return this.rpcPost(config.user.url, config.follow.bind, args).then(res => {
+      return res.data.result
+    })
+  }
+  delete (...args) {
+    return this.rpcPost(config.user.url, config.follow.unbind, args).then(res => {
+      return res.data.result
+    })
+  }
+  patch (...args) {
+    return this.rpcPost(config.user.url, config.follow.judge, args).then(res => {
+      return res.data.result
+    })
+  }
 }

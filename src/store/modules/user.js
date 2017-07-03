@@ -15,6 +15,21 @@ const actions = {
       : api.fetch(params).then(users => {
         commit('setUser', users.result)
       })
+  },
+  ADD_USER: (state, params) => {
+    return api.add(params)
+  },
+
+  LINK_WECHAT: (state, params) => {
+    return api.patch(params.email, params.openid)
+  },
+
+  LINK_IDENTITY: (state, params) => {
+    return api.delete(params.gapperid, params.wechat, params.unionid)
+  },
+
+  ADD_GAPPER: (state, params) => {
+    return api.encall('addGapper', params)
   }
 }
 

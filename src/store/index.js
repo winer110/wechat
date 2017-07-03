@@ -4,7 +4,10 @@ import user from './modules/user'
 import equipment from './modules/equipment'
 import follow from './modules/follow'
 import reserve from './modules/reserve'
+import sample from './modules/sample'
+import record from './modules/record'
 import billing from './modules/billing'
+import wechat from './modules/wechat'
 
 Vue.use(Vuex)
 
@@ -14,7 +17,10 @@ export default new Vuex.Store({
     equipment,
     follow,
     reserve,
-    billing
+    sample,
+    record,
+    billing,
+    wechat
   }
 })
 

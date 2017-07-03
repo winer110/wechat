@@ -1,29 +1,4 @@
 <template>
-<!--  div.eq-info-root
-    mt-header(title='仪器详情' fixed)
-    i.fa.fa-chevron-left.fa-fw(slot='left' @click='goBack')
-    div.eq-info-container
-      div.media
-        div.media-left
-          img.img-rounded(:src="equipment.icon ? equipment.icon : src" height="64px" width="64px")
-        div.media-body
-          div.title {{ equipment.name }}
-            div.status(v-show="status === false")
-              mt-spinner(:type='1' color='#5f71d3')
-            div.status(v-show='status==1')
-              mt-badge(size='small' color='#cccccc') 未使用
-            div.status(v-show='status==2')
-              mt-badge(type='success' size='small') 使用中
-            div.status(v-show='status==2')
-              mt-badge(type='error' size='small') 获取状态失败
-          div.content
-            div(v-show='isfollow>0')
-              mt-badge(size='small' color='#5f71d3') 已关注
-            div(v-show='isfollow<=0')
-              mt-badge(size='small' color='#CCCCCC') 未关注
-      div
-        mt-cell(title='所属院校' :value='')
--->
   <div class="eq-info-root">
     <mt-header fixed title="仪器详情">
       <i class="fa fa-chevron-left fa-fw" slot="left" @click="goBack"></i>
@@ -31,7 +6,7 @@
     <div class="eq-info-container">
       <div class="media">
         <div class="media-left">
-          <img :src="equipment.icon ? equipment.icon : src" height="64px" width="64px" class="img-rounded">
+            <img :src="equipment.icon ? equipment.icon : src" height="64px" width="64px" class="img-rounded">
         </div>
         <div class="media-body">
           <div class="title">
@@ -49,7 +24,7 @@
               <mt-badge type="error" size="small">获取状态失败</mt-badge>
             </div>
           </div>
-          <div class="content">
+          <div class="content" @click='follow'>
             <div v-show="isfollow > 0">
               <mt-badge size="small" color="#5f71d3">已关注</mt-badge>
             </div>
@@ -70,13 +45,18 @@
         <mt-cell title="联系方式" :value="equipment.contact_phone" ></mt-cell>
       </div>
       <div style="padding-top: 20px;">
-        <mt-cell title="主要技术规格和指标" :value="equipment.tech_specs" ></mt-cell>
-        <mt-cell title="主要功能特色" :value="equipment.features" ></mt-cell>
-        <mt-cell title="主要附件配置" :value="equipment.accessories" ></mt-cell>
+        <div class='cell-wrapper'>
+          <span class="cell-title">主要技术规格和指标</span>
+          <span class="cell-container">{{ equipment.tech_specs }}</span>
+          <span class="cell-title">主要功能特色</span>
+          <span class="cell-container">{{ equipment.features }}</span>
+          <span class="cell-title">主要附件配置</span>
+          <span class="cell-container">{{ equipment.accessories }}</span>
+        </div>
       </div>
       <div class="action_buttons" style="padding-top:40px">
         <div style="float:left;border-right:1px solid #172a92;" :class="{ 'only' : !equipment.can_reserv && !equipment.can_sample, 'dep' : equipment.can_reserv || equipment.can_sample}">
-          <mt-button :disabled="checkAction == 0" type="primary" size="large">
+          <mt-button :disabled="checkAction == 0" type="primary" size="large" @click='closeEquipment'>
             <mt-spinner :type="1" color="#FFF" v-show="checkButtonText == false"></mt-spinner>
             <i class="fa fa-fw fa-2x fa-toggle-on" v-show="checkButtonText == 'on'"></i>
             <i class="fa fa-fw fa-2x fa-toggle-off" v-show="checkButtonText == 'off'"></i>
@@ -238,6 +218,7 @@ export default {
     getInfo: function () {
       let id = this.$store.state.equipment.uuidToID[this.$router.currentRoute.params.id]
       this.equipment = this.$store.state.equipment.equipment[id]
+      this.judgeFocus()
       this.socket = io.connect('http://equip.xjtu.edu.cn/', {
         path: '/socket.io',
         autoConnect: false,
@@ -245,6 +226,82 @@ export default {
         timeout: 10000
       })
       this.getUseStatus()
+    },
+    closeEquipment: function () {
+      let vm = this
+      let id = this.$store.state.equipment.uuidToID[this.$router.currentRoute.params.id]
+      let equipment = this.$store.state.equipment.equipment[id]
+      let socketServer = io.connect('http://proxy.17kong.com/', {
+        path: '/socket.io',
+        authConnect: false,
+        forceNew: true,
+        timeout: 20000
+      })
+      let validationMessage = {
+        id: this.$store.state.user.user.id,
+        email: this.$store.state.user.user.email,
+        source_name: equipment.source_name,
+        socket: {}
+      }
+      socketServer
+      .on('connect', msg => {
+        socketServer
+        .emit('auth', { form: JSON.stringify(validationMessage) })
+      })
+      .on('auth-reback', data => {
+        if (data.authed !== true) return false
+        vm.$http.post('/api/decryptUserInfo', {code: data.code}).then(res => {
+          vm.code = res.data.code
+
+          var form = {
+            uuid: `wechatUUID_${vm.$router.currentRoute.params.id}`,
+            user: vm.$store.state.user.user.gapper_id,
+            equipment: vm.$router.currentRoute.params.id,
+            source_name: equipment.source_name,
+            user_info: {
+              gapper_id: vm.$store.state.user.user.gapper_id,
+              username: vm.$store.state.user.user.name,
+              email: vm.$store.state.user.user.email
+            },
+            action: 'switchOff'
+          }
+          socketServer.emit('yiqikong-switch', {
+            code: vm.code,
+            form: JSON.stringify(form)
+          })
+        }, res => {
+          console.log('decryptUserInfo-failed', res)
+        })
+      })
+      .on('yiqikong-switch-reback', msg => {
+        console.log('关机返回值', msg)
+        socketServer.disconnect()
+      })
+      socketServer.connect()
+    },
+    follow: function () {
+      this.$store.dispatch('CHANGE_FOLLOWS', {
+        isfollow: this.isfollow,
+        gapperid: this.$store.state.user.user.gapper_id,
+        sourceName: 'equipment',
+        uuid: this.equipment.uuid
+      }).then(res => {
+        console.log('follow', res)
+        if (res === true) {
+          this.isfollow = 0
+        } else {
+          this.isfollow = res
+        }
+      })
+    },
+    judgeFocus: function () {
+      this.$store.dispatch('JUDGE_FOCUS', {
+        gapperid: this.$store.state.user.user.gapper_id,
+        sourceName: 'equipment',
+        uuid: this.equipment.uuid
+      }).then(res => {
+        this.isfollow = res
+      })
     }
   },
 
@@ -284,7 +341,7 @@ export default {
 }
 </script>
 
-<style lang="stylus">
+<style lang="stylus" scoped>
 .eq-info-container
   background-color #EEE
   margin-top 40px
@@ -315,5 +372,20 @@ export default {
       width 80%
     .only
       width 100%
-
+  .cell-wrapper
+    border 1px solid #d9d9d9
+    background #fff
+    .cell-title
+      display inline-block
+      padding-top 20px
+      padding-left 10px
+      width 100%
+      color #c3d9e1
+    .cell-container
+      display inline-block
+      font-size 14px
+      margin 10px
+  .mint-cell-value
+    span
+      margin-left 10px
 </style>

@@ -2,17 +2,18 @@
   div
     mt-header(:scope="scope" @changeScope="changeScope" :keywords="keywords" @searchCommit="searchCommit")
     div.more-container
-      mt-loadmore(:bottom-method="loadBottom" :bottom-all-loaded="allLoaded" ref="loadmore")
-        ul.equipment-container
+      mt-loadmore(:bottom-method="loadBottom" :bottom-all-loaded="allLoaded" ref="loadmore" :auto-fill="fill")
+        ul.equipment-container(ref='ul')
           eq-item(v-for="item in displayItems" :key="item.id" :item="item")
     mt-footer(:value="activeTab" @switchTab="switchTab")
 </template>
 
 <script>
 import MtHeader from '../components/Header.vue'
+import Loadmore from '../components/loadmore.vue'
 import MtFooter from '../components/Footer.vue'
 import EqItem from '../components/equipment/Item.vue'
-import { Loadmore, Toast } from 'mint-ui'
+import { Toast } from 'mint-ui'
 
 export default {
   name: 'home',
@@ -28,6 +29,8 @@ export default {
     return {
       activeTab: 'index',
       scope: 'all',
+      fill: false,
+      translate: 50,
       keywords: '',
       displayItems: [],
       allLoaded: false,
@@ -96,34 +99,15 @@ export default {
             vm.displayItems.push({ id, name: res[id] })
           }
           vm.start += vm.step
+        } else {
+          vm.allLoaded = true
         }
         vm.$refs.loadmore.onBottomLoaded()
+        fn()
+      }, res => {
+        vm.$refs.loadmore.onBottomLoaded()
+        fn()
       })
-      // let vm = this
-      // this.$store.dispatch('FETCH_EQUIPMENTS', {
-      //   start: vm.start,
-      //   step: vm.step
-      // }).then((res) => {
-      //   console.log(res)
-      //   if (res.result) {
-      //     for (let i in res.result) {
-      //       if (res.result[i]) {
-      //         vm.displayItems.push({
-      //           id: i,
-      //           name: res.result[i]
-      //         })
-      //       }
-      //     }
-      //     vm.start = vm.start + vm.step
-      //   } else {
-      //     vm.allLoaded = true
-      //   }
-      //   vm.$refs.loadmore.onBottomLoaded()
-      //   fn()
-      // }, res => {
-      //   vm.$refs.loadmore.onBottomLoaded()
-      //   fn()
-      // })
     }
   },
   created () {
@@ -133,9 +117,14 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.header
+  display block
+  height 40px
+  width 100%
+  background #bcbcbc
 .more-container
-  position absolute
-  padding 40px 0 56px
+  padding-top 40px
+  padding-bottom 56px
 .equipment-container
   margin 0px
   padding 0px
